@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المختبر الافتراضي للمغناطيسية | Virtual Magnetism Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+:root{--bg:#060b14;--bg2:#0c1424;--card:#111c30;--card2:#162040;--border:#1e3050;--fg:#e8edf5;--muted:#7a8ba8;--accent:#00e5a0;--accent2:#00c8ff;--warm:#ffa726;--danger:#ff4757}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--fg);overflow:hidden;height:100vh}
+.mono{font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.nav-item{padding:9px 12px;border-radius:9px;cursor:pointer;transition:all .3s;font-size:12px;border:1px solid transparent;display:flex;align-items:center;gap:7px;color:var(--muted);white-space:nowrap;user-select:none}
+.nav-item:hover{background:var(--card);color:var(--fg)}
+.nav-item.active{background:linear-gradient(135deg,rgba(0,229,160,.12),rgba(0,200,255,.08));border-color:var(--accent);color:var(--accent);font-weight:700}
+.section{display:none;height:100%;overflow-y:auto;padding:24px}.section.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.eq-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin:10px 0;text-align:center;font-size:18px;direction:ltr}
+.slider-group{margin:10px 0}
+.slider-group label{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:13px;color:var(--muted)}
+.slider-group input[type="range"]{width:100%;height:5px;-webkit-appearance:none;background:var(--border);border-radius:3px;outline:none;direction:ltr}
+.slider-group input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer}
+.btn{padding:8px 18px;border-radius:9px;border:none;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:700;font-size:13px;transition:all .3s;display:inline-flex;align-items:center;gap:6px}
+.btn-p{background:linear-gradient(135deg,var(--accent),#00b880);color:var(--bg)}
+.btn-s{background:var(--card2);color:var(--fg);border:1px solid var(--border)}
+canvas.sim{border-radius:10px;background:var(--bg);display:block;width:100%}
+.life{background:linear-gradient(135deg,rgba(255,167,38,.07),rgba(255,167,38,.02));border:1px solid rgba(255,167,38,.2);border-radius:10px;padding:14px 16px;margin:10px 0}
+.sn{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#00b880);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;flex-shrink:0}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--card);border:1px solid var(--accent);color:var(--fg);padding:10px 24px;border-radius:10px;font-size:13px;z-index:9999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.conc{background:linear-gradient(135deg,rgba(0,229,160,.07),rgba(0,200,255,.04));border:1px solid rgba(0,229,160,.2);border-radius:10px;padding:14px 18px;margin:12px 0}
+.conc h4{color:var(--accent);margin-bottom:6px;font-size:14px}
+.dt{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+.dt th{background:var(--card2);padding:8px 12px;text-align:center;border:1px solid var(--border);color:var(--accent);font-weight:700}
+.dt td{padding:6px 12px;text-align:center;border:1px solid var(--border)}
+select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--fg);font-family:'Tajawal',sans-serif;font-size:13px}
+.badge{display:inline-block;padding:2px 9px;border-radius:16px;font-size:10px;font-weight:700}
+.bg-g{background:rgba(0,229,160,.15);color:var(--accent)}.bg-b{background:rgba(0,200,255,.15);color:var(--accent2)}.bg-o{background:rgba(255,167,38,.15);color:var(--warm)}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="flex h-screen">
+
+<!-- الشريط الجانبي -->
+<aside class="w-[250px] flex-shrink-0 border-l border-[--border] bg-[--bg2] flex flex-col overflow-hidden">
+<div class="p-4 border-b border-[--border]">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[--accent] to-[--accent2] flex items-center justify-center"><i class="fas fa-magnet text-[--bg] text-base"></i></div>
+<div><h1 class="text-xs font-black leading-tight">المختبر الافتراضي للمغناطيسية</h1><p class="text-[9px] text-[--muted] mono">Virtual Magnetism Lab</p></div>
+</div>
+<p class="text-[10px] text-[--muted] mt-1">إعداد: Israa Youssuf Samara</p>
+</div>
+<nav class="flex-1 overflow-y-auto p-2 space-y-1" id="navBar">
+<div class="nav-item active" onclick="go('home')"><i class="fas fa-home"></i>الرئيسية</div>
+<div class="text-[9px] text-[--muted] px-2 pt-2 pb-1 font-bold">المفاهيم الأساسية</div>
+<div class="nav-item" onclick="go('field')"><i class="fas fa-bezier-curve"></i>المجال المغناطيسي</div>
+<div class="nav-item" onclick="go('earth')"><i class="fas fa-globe-americas"></i>المجال الأرضي</div>
+<div class="text-[9px] text-[--muted] px-2 pt-2 pb-1 font-bold">القوة المغناطيسية</div>
+<div class="nav-item" onclick="go('force')"><i class="fas fa-arrows-alt"></i>قاعدة اليد اليمنى</div>
+<div class="nav-item" onclick="go('motion')"><i class="fas fa-circle-notch"></i>حركة الجسيم المشحون</div>
+<div class="nav-item" onclick="go('lab1')"><i class="fas fa-flask"></i>المختبر الافتراضي 1</div>
+<div class="text-[9px] text-[--muted] px-2 pt-2 pb-1 font-bold">التطبيقات</div>
+<div class="nav-item" onclick="go('spectro')"><i class="fas fa-atom"></i>مطياف الكتلة والسينكروترون</div>
+<div class="nav-item" onclick="go('conductor')"><i class="fas fa-bolt"></i>القوة في موصل</div>
+<div class="nav-item" onclick="go('lab2')"><i class="fas fa-microscope"></i>المختبر الافتراضي 2</div>
+<div class="nav-item" onclick="go('torque')"><i class="fas fa-cog"></i>العزم والمحرك</div>
+<div class="nav-item" onclick="go('examples')"><i class="fas fa-lightbulb"></i>أمثلة تفاعلية</div>
+</nav>
+<div class="p-3 border-t border-[--border] text-center"><p class="text-[9px] text-[--muted]">فيزياء الصف الثاني عشر - الوحدة الخامسة 2025</p></div>
+</aside>
+
+<main class="flex-1 overflow-hidden">
+
+<!-- الرئيسية -->
+<div class="section active" id="sec-home">
+<div class="max-w-3xl mx-auto text-center py-14">
+<div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[--accent] to-[--accent2] flex items-center justify-center" style="animation:float 3s ease-in-out infinite"><i class="fas fa-magnet text-[--bg] text-3xl"></i></div>
+<h2 class="text-3xl font-black mb-2" style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">المختبر الافتراضي للمغناطيسية</h2>
+<p class="text-sm text-[--muted] mb-1">Virtual Magnetism Laboratory</p>
+<p class="text-xs text-[--muted] mb-6">تعلّم واستقصِ مفاهيم المغناطيسية بطريقة تفاعلية مرئية</p>
+<p class="text-xs text-[--warm] mb-8"><i class="fas fa-user-edit ml-1"></i>إعداد: Israa Youssuf Samara</p>
+<div class="grid grid-cols-3 gap-3 max-w-xl mx-auto">
+<div class="card text-center cursor-pointer hover:border-[--accent] transition-all" onclick="go('field')"><i class="fas fa-bezier-curve text-[--accent] text-xl mb-1"></i><p class="text-[11px] font-bold">المجال المغناطيسي</p></div>
+<div class="card text-center cursor-pointer hover:border-[--accent] transition-all" onclick="go('force')"><i class="fas fa-hand-paper text-[--accent2] text-xl mb-1"></i><p class="text-[11px] font-bold">القوة المغناطيسية</p></div>
+<div class="card text-center cursor-pointer hover:border-[--accent] transition-all" onclick="go('motion')"><i class="fas fa-atom text-[--warm] text-xl mb-1"></i><p class="text-[11px] font-bold">حركة الجسيمات</p></div>
+</div>
+</div>
+</div>
+
+<!-- المجال المغناطيسي -->
+<div class="section" id="sec-field">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">المجال المغناطيسي <span class="mono text-xs text-[--muted]">Magnetic Field</span></h2>
+<p class="text-xs text-[--muted] mb-4">خطوط وهمية تعبّر عن مقدار المجال واتجاهه</p>
+<div class="life"><div class="flex items-start gap-2"><i class="fas fa-lightbulb text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك اليومية</p><p class="text-[11px] text-[--muted]">إبرة البوصلة تتجه دائماً نحو الشمال لأن الأرض مغناطيس عملاق! المجال المغناطيسي مثل خريطة غير مرئية تُرشد الشحنات المتحركة.</p></div></div></div>
+<div class="flex gap-2 mb-3"><button class="btn btn-p" id="btnStr" onclick="setMag('straight')">مغناطيس مستقيم</button><button class="btn btn-s" id="btnU" onclick="setMag('ushape')">مغناطيس حرف U</button></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="card"><canvas id="cField" width="600" height="440"></canvas><p class="text-[9px] text-[--muted] text-center mt-1">حرّك الماوس لرؤية اتجاه المجال</p></div>
+<div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-list-ul text-[--accent] ml-1"></i>خصائص خطوط المجال</h3><div class="space-y-2 text-xs">
+<div class="flex gap-2 items-start"><div class="sn">1</div><p>تخرج من <span class="text-red-400 font-bold">N</span> وتدخل إلى <span class="text-blue-400 font-bold">S</span></p></div>
+<div class="flex gap-2 items-start"><div class="sn">2</div><p>خطوط <span class="font-bold text-[--accent]">مقفلة</span> تُكمِل من S إلى N داخل المغناطيس</p></div>
+<div class="flex gap-2 items-start"><div class="sn">3</div><p>الكثافة تدل على <span class="font-bold text-[--warm]">المقدار</span></p></div>
+<div class="flex gap-2 items-start"><div class="sn">4</div><p>المماس يحدد <span class="font-bold text-[--accent2]">الاتجاه</span></p></div>
+<div class="flex gap-2 items-start"><div class="sn">5</div><p>لا تتقاطع أبداً</p></div>
+</div></div>
+<div class="conc"><h4><i class="fas fa-check-circle ml-1"></i>ملاحظة</h4><p class="text-xs text-[--muted]">المجال للمغناطيس المستقيم <span class="text-[--danger] font-bold">غير منتظم</span>. المجال بين قطبي حرف U <span class="text-[--accent] font-bold">منتظم</span> في المنطقة البعيدة عن الأطراف.</p></div>
+</div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-exchange-alt text-[--accent2] ml-1"></i>مقارنة</h3>
+<table class="dt"><thead><tr><th>وجه المقارنة</th><th>المجال الكهربائي</th><th>المجال المغناطيسي</th></tr></thead><tbody>
+<tr><td>الانغلاق</td><td>غير مقفلة</td><td class="text-[--accent] font-bold">مقفلة دائماً</td></tr>
+<tr><td>الشحنة المفردة</td><td>موجودة</td><td class="text-[--danger]">غير موجودة</td></tr>
+</tbody></table></div>
+</div>
+</div>
+
+<!-- المجال الأرضي -->
+<div class="section" id="sec-earth">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">المجال المغناطيسي الأرضي <span class="mono text-xs text-[--muted]">Earth's Magnetic Field</span></h2>
+<p class="text-xs text-[--muted] mb-4">كيف يتأثر مغناطيس معلق بالمجال الأرضي</p>
+<div class="life"><div class="flex items-start gap-2"><i class="fas fa-compass text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك اليومية</p><p class="text-[11px] text-[--muted]">البوصلة مغناطيس معلق حر الحركة. القطب المغناطيسي الجنوبي للأرض قريب من الشمال الجغرافي!</p></div></div></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="card"><canvas id="cEarth" width="600" height="480"></canvas><p class="text-[9px] text-[--muted] text-center mt-1">اسحب بالماوس للتدوير</p></div>
+<div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-globe text-[--accent] ml-1"></i>حقائق</h3><div class="space-y-2 text-xs">
+<div class="flex gap-2 items-start"><div class="sn">1</div><p>القطب المغناطيسي <span class="text-red-400 font-bold">الجنوبي</span> قريب من <span class="text-[--warm]">الشمال الجغرافي</span></p></div>
+<div class="flex gap-2 items-start"><div class="sn">2</div><p>القطب المغناطيسي <span class="text-blue-400 font-bold">الشمالي</span> قريب من <span class="text-[--warm]">الجنوب الجغرافي</span></p></div>
+<div class="flex gap-2 items-start"><div class="sn">3</div><p>مغناطيس معلق يدور حتى يشير N نحو الشمال الجغرافي</p></div>
+<div class="flex gap-2 items-start"><div class="sn">4</div><p>ينشأ من تيارات الحمل في <span class="text-[--accent]">النواة الخارجية</span> المصهورة</p></div>
+</div></div>
+<div class="conc"><h4><i class="fas fa-brain ml-1"></i>لماذا تنعكس الأقطاب؟</h4><p class="text-xs text-[--muted]">الأقطاب المتخالفة تجذب: N للبوصلة يجذبه القطب المغناطيسي الجنوبي للأرض.</p></div>
+<div class="flex gap-2 mt-2"><button class="btn btn-p" onclick="earthShowLines=!earthShowLines"><i class="fas fa-eye"></i>خطوط المجال</button><button class="btn btn-s" onclick="earthShowNeedle=!earthShowNeedle"><i class="fas fa-compass"></i>البوصلة</button></div>
+</div></div>
+</div>
+</div>
+
+<!-- قاعدة اليد اليمنى -->
+<div class="section" id="sec-force">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">القوة المغناطيسية وقاعدة اليد اليمنى</h2>
+<p class="text-xs text-[--muted] mb-4">تحديد اتجاه القوة المؤثرة في شحنة متحركة</p>
+<div class="life"><div class="flex items-start gap-2"><i class="fas fa-tv text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك اليومية</p><p class="text-[11px] text-[--muted]">شاشة التلفاز القديمة تطلق إلكترونات. ضع مغناطيساً قريباً والصورة تنحرف!</p></div></div></div>
+<div class="card mb-4"><h3 class="text-sm font-bold mb-2"><i class="fas fa-star text-[--warm] ml-1"></i>خصائص القوة</h3>
+<div class="grid grid-cols-2 gap-2 text-xs">
+<div class="p-2 rounded-lg bg-[--bg] border border-[--border]"><span class="text-[--danger] font-bold">لا يؤثر</span> في شحنة ساكنة أو موازية</div>
+<div class="p-2 rounded-lg bg-[--bg] border border-[--border]">تتناسب طردياً مع <span class="mono text-[10px]">q, v, B, sin θ</span></div>
+<div class="p-2 rounded-lg bg-[--bg] border border-[--border]">تعتمد على اتجاه السرعة ونوع الشحنة</div>
+<div class="p-2 rounded-lg bg-[--bg] border border-[--border]">دائماً <span class="text-[--accent] font-bold">عمودية</span> على السرعة والمجال</div>
+</div></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="card"><canvas id="cRHR" width="600" height="440"></canvas></div>
+<div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-hand-paper text-[--accent] ml-1"></i>قاعدة اليد اليمنى</h3><div class="space-y-1 text-xs">
+<div class="flex gap-2 items-center"><span class="w-7 h-7 rounded bg-red-500/20 text-red-400 flex items-center justify-center text-[10px]"><i class="fas fa-thumbtack"></i></span><p><b>الإبهام</b> → السرعة v</p></div>
+<div class="flex gap-2 items-center"><span class="w-7 h-7 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px]"><i class="fas fa-hand-peace"></i></span><p><b>باقي الأصابع</b> → المجال B</p></div>
+<div class="flex gap-2 items-center"><span class="w-7 h-7 rounded bg-[--accent]/20 text-[--accent] flex items-center justify-center text-[10px]"><i class="fas fa-arrow-up"></i></span><p><b>باطن الكف</b> → القوة F_B</p></div>
+</div><div class="mt-2 p-2 rounded bg-red-500/10 border border-red-500/20 text-xs"><i class="fas fa-exclamation-triangle text-[--danger] ml-1"></i>شحنة <span class="text-[--danger] font-bold">سالبة</span> → ينعكس اتجاه القوة</div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-sliders-h text-[--accent2] ml-1"></i>غيّر القيم</h3>
+<div class="slider-group"><label><span>اتجاه السرعة</span><span class="mono text-[10px]" id="vL">+x</span></label><select id="vS" onchange="updRHR()"><option value="+x">+x</option><option value="-x">-x</option><option value="+y">+y</option><option value="-y">-y</option><option value="+z">+z (خارج)</option><option value="-z">-z (داخل)</option></select></div>
+<div class="slider-group"><label><span>اتجاه المجال</span><span class="mono text-[10px]" id="bL">+z</span></label><select id="bS" onchange="updRHR()"><option value="+x">+x</option><option value="-x">-x</option><option value="+y">+y</option><option value="-y">-y</option><option value="+z" selected>+z</option><option value="-z">-z</option></select></div>
+<div class="flex gap-2 mt-2"><button class="btn btn-p" id="bPos" onclick="setQ(1)">+q موجبة</button><button class="btn btn-s" id="bNeg" onclick="setQ(-1)">-q سالبة</button></div>
+<div class="eq-box mt-2 text-sm"><span class="text-[--accent]">F<sub>B</sub></span> = q<span class="text-red-400">v</span> × <span class="text-blue-400">B</span> = <span id="fRes" class="text-[--warm] font-bold">-y</span></div>
+</div></div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-square-root-alt text-[--accent] ml-1"></i>العلاقات الرياضية</h3>
+<div class="grid grid-cols-3 gap-3 text-center">
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted] mb-1">متجهي</p><div class="eq-box text-sm">F<sub>B</sub> = qv × B</div></div>
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted] mb-1">المقدار</p><div class="eq-box text-sm">F<sub>B</sub> = qvB sin θ</div></div>
+<div class="p-3 rounded-lg bg-[--bg] border border-[--accent]"><p class="text-[10px] text-[--accent] mb-1 font-bold">عظمى (θ=90°)</p><div class="eq-box text-sm text-[--accent]">F<sub>B</sub> = qvB</div></div>
+</div>
+<div class="mt-2 p-2 rounded bg-[--bg] border border-[--border] text-xs text-[--muted]">وحدة B: <span class="mono text-[--accent] font-bold">Tesla (T)</span> = N·s/(C·m)</div></div>
+</div>
+</div>
+
+<!-- حركة الجسيم المشحون -->
+<div class="section" id="sec-motion">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">حركة جسيم مشحون في مجال منتظم</h2>
+<p class="text-xs text-[--muted] mb-4">لماذا مسار دائري؟</p>
+<div class="life"><div class="flex items-start gap-2"><i class="fas fa-hurricane text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك اليومية</p><p class="text-[11px] text-[--muted]">تخيّل تدور المقود بثبات - السيارة تسلك مساراً دائرياً! القوة المغناطيسية تغيّر اتجاه السرعة دون مقدارها.</p></div></div></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="card"><canvas id="cMotion" width="600" height="440"></canvas>
+<div class="flex gap-2 mt-2"><button class="btn btn-p" onclick="motionPause=!motionPause"><i class="fas fa-pause"></i>إيقاف/استئناف</button><button class="btn btn-s" onclick="motionAngle=0;motionPause=false"><i class="fas fa-redo"></i>إعادة</button></div></div>
+<div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-cog text-[--accent] ml-1"></i>تحكّم بالمعاملات</h3>
+<div class="slider-group"><label><span>m (×10⁻²⁷ kg)</span><span class="mono text-[10px]" id="mVL">1.67</span></label><input type="range" id="mS" min="0.5" max="10" step="0.5" value="1.67" oninput="updMotion()"></div>
+<div class="slider-group"><label><span>v (×10⁶ m/s)</span><span class="mono text-[10px]" id="vVL">5.0</span></label><input type="range" id="vS2" min="1" max="10" step="0.5" value="5" oninput="updMotion()"></div>
+<div class="slider-group"><label><span>q (×10⁻¹⁹ C)</span><span class="mono text-[10px]" id="qVL">1.6</span></label><input type="range" id="qS" min="0.5" max="5" step="0.5" value="1.6" oninput="updMotion()"></div>
+<div class="slider-group"><label><span>B (T)</span><span class="mono text-[10px]" id="bVL">0.5</span></label><input type="range" id="bS2" min="0.1" max="2" step="0.1" value="0.5" oninput="updMotion()"></div></div>
+<div class="card mt-3"><div class="eq-box text-sm">r = mv/qB = <span id="rRes" class="text-[--accent] font-bold">0.104 m</span></div>
+<div class="eq-box text-sm mt-1">F<sub>B</sub> = qvB = <span id="fMRes" class="text-[--warm] font-bold">4.0×10⁻¹³ N</span></div></div>
+</div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-pen-fancy text-[--accent2] ml-1"></i>الاشتقاق الرياضي</h3>
+<div class="grid grid-cols-4 gap-2 text-center">
+<div class="p-2 rounded bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted]">مركزية</p><div class="eq-box text-xs">F = mv²/r</div></div>
+<div class="p-2 rounded bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted]">مغناطيسية</p><div class="eq-box text-xs">F<sub>B</sub> = qvB</div></div>
+<div class="p-2 rounded bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted]">مساواة</p><div class="eq-box text-xs">qvB = mv²/r</div></div>
+<div class="p-2 rounded bg-[--bg] border border-[--accent]"><p class="text-[10px] text-[--accent] font-bold">نتيجة</p><div class="eq-box text-xs text-[--accent]">r = mv/qB</div></div>
+</div>
+<div class="conc mt-2"><h4><i class="fas fa-eye ml-1"></i>ملاحظة</h4><p class="text-xs text-[--muted]">القوة <span class="text-[--accent] font-bold">لا تبذل شغلاً</span> لأنها عمودية على الحركة.</p></div></div>
+</div>
+</div>
+
+<!-- المختبر 1 -->
+<div class="section" id="sec-lab1">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">المختبر الافتراضي 1: الأشعة المهبطية</h2>
+<p class="text-xs text-[--muted] mb-4">استقصاء تأثير المجال المغناطيسي في شحنة متحركة</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="card"><canvas id="cLab1" width="600" height="420"></canvas>
+<div class="flex gap-2 mt-2 flex-wrap">
+<button class="btn btn-p" onclick="lab1Pow=!lab1Pow;if(lab1Pow)lab1Step=1;else{lab1Step=0;lab1Near=false;lab1Flip=false}toast(lab1Pow?'تشغيل المصدر':'إطفاء')"><i class="fas fa-power-off"></i>تشغيل</button>
+<button class="btn btn-s" onclick="if(lab1Pow){lab1Near=true;lab1Step=2;toast('تقريب المغناطيس')}"><i class="fas fa-magnet"></i>تقريب المغناطيس</button>
+<button class="btn btn-s" onclick="if(lab1Near){lab1Flip=!lab1Flip;lab1Step=3;toast('عكس الأقطاب')}"><i class="fas fa-exchange-alt"></i>عكس الأقطاب</button>
+</div></div>
+<div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-clipboard-list text-[--accent] ml-1"></i>خطوات</h3><div class="space-y-1 text-xs">
+<div class="flex gap-2"><div class="sn">1</div><p>شغّل المصدر وارفع الجهد</p></div>
+<div class="flex gap-2"><div class="sn">2</div><p>لاحظ مسار الأشعة المستقيم</p></div>
+<div class="flex gap-2"><div class="sn">3</div><p>قرّب المغناطيس ولاحظ الانحراف</p></div>
+<div class="flex gap-2"><div class="sn">4</div><p>اعكس الأقطاب</p></div>
+</div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-eye text-[--warm] ml-1"></i>الملاحظات</h3><div class="text-xs space-y-1" id="lab1Obs"><p class="text-[--muted]">شغّل المصدر لبدء التجربة...</p></div></div>
+<div class="conc mt-3" id="lab1Conc" style="display:none"><h4><i class="fas fa-check-double ml-1"></i>الاستنتاج</h4><p class="text-xs text-[--muted]">المجال المغناطيسي يؤثر في الإلكترونات بقوة تنحرفها. عكس الأقطاب يعكس الاتجاه.</p></div>
+</div></div>
+</div>
+</div>
+
+<!-- مطياف الكتلة والسينكروترون -->
+<div class="section" id="sec-spectro">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">مطياف الكتلة والسينكروترون</h2>
+<p class="text-xs text-[--muted] mb-4">تطبيقات تكنولوجية للقوة المغناطيسية</p>
+<div class="life"><div class="flex items-start gap-2"><i class="fas fa-hospital text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك</p><p class="text-[11px] text-[--muted]">تحليل الدم يعتمد على مطياف الكتلة. السينكروترون يرى تفاصيل الخلايا بالنانومتر!</p></div></div></div>
+<div class="card mb-4"><h3 class="text-sm font-bold mb-2"><i class="fas fa-atom text-[--accent] ml-1"></i>مطياف الكتلة</h3>
+<div class="grid grid-cols-2 gap-4">
+<div><canvas id="cSpec" width="600" height="340"></canvas>
+<div class="flex gap-2 mt-2"><button class="btn btn-p" onclick="specRun=true;specT=0;toast('بدأت المحاكاة')"><i class="fas fa-play"></i>تشغيل</button><button class="btn btn-s" onclick="specRun=false"><i class="fas fa-stop"></i>إيقاف</button></div></div>
+<div><p class="text-xs text-[--muted] mb-2">يفصل الأيونات حسب <span class="mono text-[--accent]">m/q</span>.</p><div class="eq-box text-sm">m/q = Br / v</div>
+<div class="mt-2 p-2 rounded bg-[--bg] border border-[--border] text-xs text-[--muted]"><span class="text-[--accent] font-bold">الأثقل → مسار أكبر</span> لأن r = mv/qB</div></div></div></div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-circle-notch text-[--accent2] ml-1"></i>السينكروترون</h3>
+<div class="grid grid-cols-2 gap-4">
+<div><canvas id="cSync" width="600" height="340"></canvas></div>
+<div><p class="text-xs text-[--muted] mb-2">يُسرّع الجسيمات لتقترب من سرعة الضوء ثم يحرفها بقطاب مغناطيسية في مسار حلقي.</p>
+<div class="space-y-1 text-xs">
+<div class="flex gap-2 items-center"><span class="badge bg-g">الطب</span><span class="text-[--muted]">تصوير الخلايا</span></div>
+<div class="flex gap-2 items-center"><span class="badge bg-b">الصناعة</span><span class="text-[--muted]">تحليل المواد</span></div>
+<div class="flex gap-2 items-center"><span class="badge bg-o">الزراعة</span><span class="text-[--muted]">دراسة البذور</span></div>
+</div>
+<div class="mt-2 p-2 rounded bg-[--bg] border border-[--border] text-xs text-[--muted]"><span class="text-[--warm] font-bold">SESAME</span> الأردن: <span class="mono">2.5 GeV</span>، 2017م</div></div></div></div>
+</div>
+</div>
+
+<!-- القوة في موصل -->
+<div class="section" id="sec-conductor">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">القوة في موصل يحمل تياراً</h2>
+<p class="text-xs text-[--muted] mb-4">لماذا ينحرف السلك؟</p>
+<div class="life"><div class="flex items-start gap-2"><i class="fas fa-fan text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك</p><p class="text-[11px] text-[--muted]">المروحة، الغسّالة، السيارة الكهربائية - كلها: تيار في موصل داخل مجال = قوة!</p></div></div></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="card"><canvas id="cCond" width="600" height="400"></canvas>
+<div class="flex gap-2 mt-2"><button class="btn btn-p" onclick="condOn=!condOn;toast(condOn?'تشغيل التيار':'إطفاء')"><i class="fas fa-bolt"></i>تشغيل</button><button class="btn btn-s" onclick="condRev=!condRev;toast('عكس التيار')"><i class="fas fa-exchange-alt"></i>عكس</button></div></div>
+<div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-hand-paper text-[--accent] ml-1"></i>قاعدة اليد اليمنى للموصل</h3><div class="space-y-1 text-xs">
+<div class="flex gap-2 items-center"><span class="w-7 h-7 rounded bg-red-500/20 text-red-400 flex items-center justify-center text-[10px]"><i class="fas fa-thumbtack"></i></span><p><b>الإبهام</b> → التيار I</p></div>
+<div class="flex gap-2 items-center"><span class="w-7 h-7 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px]"><i class="fas fa-hand-peace"></i></span><p><b>الأصابع</b> → المجال B</p></div>
+<div class="flex gap-2 items-center"><span class="w-7 h-7 rounded bg-[--accent]/20 text-[--accent] flex items-center justify-center text-[10px]"><i class="fas fa-arrow-up"></i></span><p><b>باطن الكف</b> → القوة F_B</p></div>
+</div></div>
+<div class="card mt-3"><div class="eq-box text-sm">F<sub>B</sub> = IBL sin θ</div><p class="text-[10px] text-[--muted] mt-1">العظمى عند θ = 90° (عمودي)</p></div>
+<div class="conc mt-3"><h4><i class="fas fa-brain ml-1"></i>التبرير</h4><p class="text-xs text-[--muted]">التيار = شحنات متحركة. كل شحنة تتأثر بقوة. المحصلة = قوة الموصل.</p></div>
+</div></div>
+</div>
+</div>
+
+<!-- المختبر 2 -->
+<div class="section" id="sec-lab2">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">المختبر الافتراضي 2: استقصاء القوة</h2>
+<p class="text-xs text-[--muted] mb-4">القياس والملاحظة والاستنتاج</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="card"><canvas id="cLab2" width="600" height="360"></canvas></div>
+<div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-sliders-h text-[--accent] ml-1"></i>المعاملات</h3>
+<div class="slider-group"><label><span>I (A)</span><span class="mono text-[10px]" id="l2I">2.0</span></label><input type="range" id="l2IS" min="0.5" max="8" step="0.5" value="2" oninput="updLab2()"></div>
+<div class="slider-group"><label><span>B (T)</span><span class="mono text-[10px]" id="l2B">0.25</span></label><input type="range" id="l2BS" min="0.1" max="1" step="0.05" value="0.25" oninput="updLab2()"></div>
+<div class="slider-group"><label><span>L (m)</span><span class="mono text-[10px]" id="l2L">0.05</span></label><input type="range" id="l2LS" min="0.01" max="0.15" step="0.01" value="0.05" oninput="updLab2()"></div>
+<div class="eq-box text-sm mt-1">F<sub>B</sub> = <span id="l2F" class="text-[--accent] font-bold">0.025 N</span></div>
+<div class="mt-1 p-2 rounded bg-[--bg] text-center text-xs">الميزان: <span class="mono text-sm text-[--warm] font-bold" id="l2Sc">0.025 N</span></div></div>
+<button class="btn btn-p w-full mt-2" onclick="lab2Rec()"><i class="fas fa-plus"></i>تسجيل القراءة</button>
+</div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-table text-[--accent2] ml-1"></i>جدول القياسات</h3>
+<table class="dt"><thead><tr><th>#</th><th>I</th><th>B</th><th>L</th><th>F_B</th><th>-</th></tr></thead><tbody id="l2TB"></tbody></table>
+<div class="flex gap-2 mt-2"><button class="btn btn-s" onclick="lab2Plot()"><i class="fas fa-chart-line"></i>رسم F-I</button><button class="btn btn-s" onclick="lab2Data=[];document.getElementById('l2TB').innerHTML='';document.getElementById('l2GrA').style.display='none';document.getElementById('l2Conc').style.display='none'"><i class="fas fa-trash"></i>مسح</button></div>
+<div id="l2GrA" style="display:none" class="mt-3"><canvas id="cLab2G" width="700" height="320"></canvas></div>
+<div class="conc mt-2" id="l2Conc" style="display:none"><h4><i class="fas fa-check-double ml-1"></i>الاستنتاج</h4><p class="text-xs text-[--muted]">F تتناسب <span class="text-[--accent] font-bold">طردياً</span> مع I. الميل = <span class="mono">B×L</span>.</p><div class="eq-box text-sm mt-1">F<sub>B</sub> = IBL</div></div>
+</div>
+</div>
+</div>
+
+<!-- العزم والمحرك -->
+<div class="section" id="sec-torque">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">العزم والمحرك الكهربائي</h2>
+<p class="text-xs text-[--muted] mb-4">كيف يتحوّل التيار إلى حركة دورانية؟</p>
+<div class="life"><div class="flex items-start gap-2"><i class="fas fa-fan text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك</p><p class="text-[11px] text-[--muted]">المروحة، الخلاط، الغسّالة، السيارة الكهربائية - كلها محركات كهربائية!</p></div></div></div>
+<div class="grid grid-cols-2 gap-4 mb-4">
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-sync-alt text-[--accent] ml-1"></i>العزم في حلقة</h3>
+<canvas id="cTorque" width="600" height="360"></canvas>
+<div class="flex gap-2 mt-2 items-center justify-center"><button class="btn btn-p" onclick="torqRun=!torqRun;toast(torqRun?'بدأ الدوران':'توقف')"><i class="fas fa-play"></i>تشغيل</button><span class="text-xs text-[--muted]" id="torqL">θ = 0°</span></div></div>
+<div><div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-info-circle text-[--accent2] ml-1"></i>تحليل القوى</h3><div class="space-y-1 text-xs">
+<p>حلقة (a×b) تحمل I في مجال B:</p>
+<div class="p-2 rounded bg-[--bg] border border-[--border]">الضلعان الموازيان: <span class="text-[--accent]">لا قوة</span></div>
+<div class="p-2 rounded bg-[--bg] border border-[--border]">العموديان: <span class="mono text-[--warm]">F = IaB</span> لكل ضلع</div>
+<div class="p-2 rounded bg-[--accent]/10 border border-[--accent]/30"><span class="text-[--accent] font-bold">ازدواج = عزم دوران</span></div>
+</div></div></div></div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-cogs text-[--accent] ml-1"></i>المحرك الكهربائي</h3>
+<div class="grid grid-cols-2 gap-4">
+<div><canvas id="cMotor" width="600" height="400"></canvas>
+<div class="flex gap-2 mt-2 justify-center">
+<button class="btn btn-p" onclick="motorRun=!motorRun;toast(motorRun?'تشغيل':'إيقاف')"><i class="fas fa-play"></i>تشغيل</button>
+<button class="btn btn-s" onclick="motorSpd=Math.max(0.5,motorSpd-0.5);document.getElementById('motorSpdL').textContent=motorSpd+'x'"><i class="fas fa-minus"></i></button>
+<span class="mono text-[10px] text-[--muted] self-center" id="motorSpdL">1x</span>
+<button class="btn btn-s" onclick="motorSpd=Math.min(5,motorSpd+0.5);document.getElementById('motorSpdL').textContent=motorSpd+'x'"><i class="fas fa-plus"></i></button>
+</div></div>
+<div>
+<h4 class="text-xs font-bold mb-2 text-[--accent]">الأجزاء الرئيسة</h4>
+<div class="space-y-1 text-xs mb-3">
+<div class="flex gap-2"><div class="sn text-[10px]">1</div><p><b>قطبان مغناطيسيان</b> - المجال</p></div>
+<div class="flex gap-2"><div class="sn text-[10px]">2</div><p><b>ملف نحاسي معزول</b> - يدور</p></div>
+<div class="flex gap-2"><div class="sn text-[10px]">3</div><p><b>العاكس</b> - يبدل التيار كل نصف دورة</p></div>
+<div class="flex gap-2"><div class="sn text-[10px]">4</div><p><b>فرشاتان كربون</b> - تنقلان التيار</p></div>
+</div>
+<div class="conc"><h4><i class="fas fa-lightbulb ml-1"></i>سرعة المحرك!</h4><p class="text-xs text-[--muted]">بدون العاكس سيتوقف عند الوضع العمودي. العاكس يعكس التيار فتبقى القوى بنفس الاتجاه = <span class="text-[--accent] font-bold">دوران مستمر!</span></p></div>
+<div class="life mt-2"><p class="text-[10px] text-[--muted]"><i class="fas fa-satellite text-[--warm] ml-1"></i>الأقمار الصناعية تستخدم ملفات يتأثر فيها المجال الأرضي بعزم يدورها.</p></div>
+</div></div></div>
+</div>
+</div>
+
+<!-- أمثلة تفاعلية -->
+<div class="section" id="sec-examples">
+<div class="max-w-5xl mx-auto">
+<h2 class="text-xl font-black mb-1">أمثلة تفاعلية</h2>
+<p class="text-xs text-[--muted] mb-4">غيّر المعطيات والحل يتحدث فوراً</p>
+
+<div class="card"><div class="flex items-center gap-2 mb-2"><span class="badge bg-g">مثال 1</span><h3 class="text-sm font-bold">إلكترون في مجال غير منتظم</h3></div>
+<p class="text-xs text-[--muted] mb-2">v باتجاه +x، B باتجاه +y، θ=90°</p>
+<div class="grid grid-cols-2 gap-4">
+<div><div class="slider-group"><label><span>v (×10⁶ m/s)</span><span class="mono text-[10px]" id="e1v">5.0</span></label><input type="range" id="e1vS" min="1" max="10" step="0.5" value="5" oninput="solve1()"></div>
+<div class="slider-group"><label><span>B (×10⁻⁴ T)</span><span class="mono text-[10px]" id="e1b">2.0</span></label><input type="range" id="e1bS" min="0.5" max="5" step="0.5" value="2" oninput="solve1()"></div>
+<button class="btn btn-p" onclick="solve1()"><i class="fas fa-calculator"></i>حل</button></div>
+<div id="e1Sol" class="p-3 rounded-lg bg-[--bg] border border-[--border] text-xs"></div></div></div>
+
+<div class="card mt-3"><div class="flex items-center gap-2 mb-2"><span class="badge bg-b">مثال 2</span><h3 class="text-sm font-bold">جسيم بزاوية في مجال منتظم</h3></div>
+<div class="grid grid-cols-2 gap-4">
+<div><div class="slider-group"><label><span>q (×10⁻⁶ C)</span><span class="mono text-[10px]" id="e2q">5.0</span></label><input type="range" id="e2qS" min="1" max="10" step="0.5" value="5" oninput="solve2()"></div>
+<div class="slider-group"><label><span>v (×10⁵ m/s)</span><span class="mono text-[10px]" id="e2v">4.0</span></label><input type="range" id="e2vS" min="1" max="10" step="0.5" value="4" oninput="solve2()"></div>
+<div class="slider-group"><label><span>B (×10⁻⁴ T)</span><span class="mono text-[10px]" id="e2b">3.0</span></label><input type="range" id="e2bS" min="1" max="8" step="0.5" value="3" oninput="solve2()"></div>
+<div class="slider-group"><label><span>θ (°)</span><span class="mono text-[10px]" id="e2t">53</span></label><input type="range" id="e2tS" min="0" max="90" step="1" value="53" oninput="solve2()"></div>
+<button class="btn btn-p" onclick="solve2()"><i class="fas fa-calculator"></i>حل</button></div>
+<div id="e2Sol" class="p-3 rounded-lg bg-[--bg] border border-[--border] text-xs"></div></div></div>
+
+<div class="card mt-3"><div class="flex items-center gap-2 mb-2"><span class="badge bg-o">مثال 3</span><h3 class="text-sm font-bold">مطياف الكتلة - فصل اليورانيوم</h3></div>
+<div class="grid grid-cols-2 gap-4">
+<div><div class="slider-group"><label><span>v (×10² m/s)</span><span class="mono text-[10px]" id="e3v">400</span></label><input type="range" id="e3vS" min="100" max="800" step="50" value="400" oninput="solve3()"></div>
+<div class="slider-group"><label><span>B (T)</span><span class="mono text-[10px]" id="e3b">1.2</span></label><input type="range" id="e3bS" min="0.5" max="2" step="0.1" value="1.2" oninput="solve3()"></div>
+<div class="slider-group"><label><span>r₁ (cm)</span><span class="mono text-[10px]" id="e3r1">8.177</span></label><input type="range" id="e3r1S" min="5" max="12" step="0.1" value="8.177" oninput="solve3()"></div>
+<div class="slider-group"><label><span>r₂ (cm)</span><span class="mono text-[10px]" id="e3r2">8.281</span></label><input type="range" id="e3r2S" min="5" max="12" step="0.1" value="8.281" oninput="solve3()"></div>
+<button class="btn btn-p" onclick="solve3()"><i class="fas fa-calculator"></i>حل</button></div>
+<div id="e3Sol" class="p-3 rounded-lg bg-[--bg] border border-[--border] text-xs"></div></div></div>
+
+<div class="card mt-3"><div class="flex items-center gap-2 mb-2"><span class="badge bg-g">مثال 4</span><h3 class="text-sm font-bold">القوة في سلك ألمنيوم</h3></div>
+<div class="grid grid-cols-2 gap-4">
+<div><div class="slider-group"><label><span>I (A)</span><span class="mono text-[10px]" id="e4i">5.2</span></label><input type="range" id="e4iS" min="1" max="10" step="0.2" value="5.2" oninput="solve4()"></div>
+<div class="slider-group"><label><span>B (T)</span><span class="mono text-[10px]" id="e4b">0.25</span></label><input type="range" id="e4bS" min="0.05" max="1" step="0.05" value="0.25" oninput="solve4()"></div>
+<div class="slider-group"><label><span>L (cm)</span><span class="mono text-[10px]" id="e4l">5.0</span></label><input type="range" id="e4lS" min="1" max="15" step="0.5" value="5" oninput="solve4()"></div>
+<button class="btn btn-p" onclick="solve4()"><i class="fas fa-calculator"></i>حل</button></div>
+<div id="e4Sol" class="p-3 rounded-lg bg-[--bg] border border-[--border] text-xs"></div></div></div>
+</div>
+</div>
+
+</main>
+</div>
+
+<script>
+/* === الحالة === */
+var activeTab='home',magType='straight',qType=1;
+var motionAngle=0,motionPause=false;
+var lab1Pow=false,lab1Near=false,lab1Flip=false,lab1Step=0;
+var condOn=false,condRev=false;
+var lab2Data=[];
+var torqRun=false,torqAngle=0;
+var motorRun=false,motorSpd=1,motorAngle=0;
+var specRun=false,specT=0;
+var earthShowLines=true,earthShowNeedle=true;
+var earthRotX=0.3,earthRotY=0,earthDrag=false,earthLX=0,earthLY=0;
+var fieldMX=-1,fieldMY=-1;
+
+/* === أدوات === */
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2200)}
+function gv(id){return parseFloat(document.getElementById(id).value)}
+function st(id,v){document.getElementById(id).textContent=v}
+
+/* === التنقل === */
+function go(t){
+  activeTab=t;
+  var items=document.querySelectorAll('.nav-item');
+  for(var i=0;i<items.length;i++)items[i].classList.remove('active');
+  var secs=document.querySelectorAll('.section');
+  for(var i=0;i<secs.length;i++)secs[i].classList.remove('active');
+  /* تنشيط العنصر الصحيح في الشريط الجانبي */
+  var navItems=document.getElementById('navBar').children;
+  var tabMap=['home','field','earth','force','motion','lab1','spectro','conductor','lab2','torque','examples'];
+  /* نجد الفهرس - لكن هناك عناوين فاصلة. نستخدم خاصية data أو نعتمد على الترتيب */
+  /* أبسط: نبحث بالـ onclick */
+  for(var i=0;i<navItems.length;i++){
+    var oc=navItems[i].getAttribute('onclick');
+    if(oc&&oc.indexOf("'"+t+"'")!==-1){navItems[i].classList.add('active');break}
+  }
+  var se=document.getElementById('sec-'+t);
+  if(se)se.classList.add('active');
+}
+
+/* === إسقاط 3D === */
+function proj(x,y,z,rx,ry,cx,cy,s){
+  var x1=x*Math.cos(ry)-z*Math.sin(ry);
+  var z1=x*Math.sin(ry)+z*Math.cos(ry);
+  var y2=y*Math.cos(rx)-z1*Math.sin(rx);
+  var z2=y*Math.sin(rx)+z1*Math.cos(rx);
+  var p=5/(5+z2);
+  return{x:cx+x1*s*p,y:cy-y2*s*p,z:z2,s:p};
+}
+
+function drawArr(ctx,x1,y1,x2,y2,col,w){
+  var a=Math.atan2(y2-y1,x2-x1);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=col;ctx.lineWidth=w||2;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-7*Math.cos(a-0.4),y2-7*Math.sin(a-0.4));
+  ctx.lineTo(x2-7*Math.cos(a+0.4),y2-7*Math.sin(a+0.4));
+  ctx.closePath();ctx.fillStyle=col;ctx.fill();
+}
+
+/* === المجال المغناطيسي === */
+function setMag(t){magType=t;document.getElementById('btnStr').className=t==='straight'?'btn btn-p':'btn btn-s';document.getElementById('btnU').className=t==='ushape'?'btn btn-p':'btn btn-s'}
+
+function drawField(){
+  var c=document.getElementById('cField');if(!c||activeTab!=='field')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2;
+  if(magType==='straight'){
+    ctx.fillStyle='#cc2222';ctx.fillRect(cx-80,cy-18,80,36);
+    ctx.fillStyle='#2222cc';ctx.fillRect(cx,cy-18,80,36);
+    ctx.fillStyle='#fff';ctx.font='bold 16px Tajawal';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('N',cx-40,cy);ctx.fillText('S',cx+40,cy);
+    for(var i=-4;i<=4;i++){
+      if(i===0)continue;var oy=i*16,bulge=Math.abs(oy)*1.6+50;
+      ctx.beginPath();ctx.strokeStyle='rgba(0,229,160,'+(0.35+Math.abs(i)*0.04)+')';ctx.lineWidth=1.5;
+      ctx.moveTo(cx-80,cy+oy);ctx.bezierCurveTo(cx-80-bulge,cy+oy*0.6,cx+80+bulge,cy+oy*0.6,cx+80,cy+oy);ctx.stroke();
+      drawArr(ctx,cx-5,cy+oy,cx+5,cy+oy,'rgba(0,229,160,0.6)',1.5);
+    }
+    ctx.beginPath();ctx.strokeStyle='rgba(0,229,160,0.6)';ctx.lineWidth=2;ctx.moveTo(cx-80,cy);ctx.lineTo(cx+80,cy);ctx.stroke();
+    drawArr(ctx,cx-5,cy,cx+5,cy,'rgba(0,229,160,0.8)',2);
+    for(var j=0;j<250;j++){
+      var a=Math.random()*Math.PI*2,d=Math.random()*200+60;
+      var px=cx+Math.cos(a)*d,py=cy+Math.sin(a)*d*0.55;
+      if(px>15&&px<w-15&&py>15&&py<h-15){ctx.save();ctx.translate(px,py);ctx.fillStyle='rgba(160,160,160,'+(Math.random()*0.3+0.08)+')';ctx.fillRect(-3,-0.5,6,1);ctx.restore()}
+    }
+  }else{
+    ctx.beginPath();ctx.strokeStyle='#667';ctx.lineWidth=28;ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.moveTo(cx-75,cy-50);ctx.lineTo(cx-75,cy+35);ctx.lineTo(cx+75,cy+35);ctx.lineTo(cx+75,cy-50);ctx.stroke();
+    ctx.fillStyle='#cc2222';ctx.fillRect(cx-90,cy-68,30,32);ctx.fillStyle='#2222cc';ctx.fillRect(cx+60,cy-68,30,32);
+    ctx.fillStyle='#fff';ctx.font='bold 14px Tajawal';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('N',cx-75,cy-52);ctx.fillText('S',cx+75,cy-52);
+    for(var i=-3;i<=3;i++){var oy=i*11;ctx.beginPath();ctx.strokeStyle='rgba(0,229,160,'+(i===0?0.6:0.35)+')';ctx.lineWidth=i===0?2:1.5;ctx.moveTo(cx-75,cy-58+oy);ctx.lineTo(cx+75,cy-58+oy);ctx.stroke();drawArr(ctx,cx,cy-58+oy,cx+8,cy-58+oy,'rgba(0,229,160,0.7)',i===0?2:1.5)}
+    for(var j=0;j<180;j++){var px=cx-65+Math.random()*130,py=cy-58+(Math.random()-0.5)*70;ctx.save();ctx.translate(px,py);ctx.fillStyle='rgba(160,160,160,'+(Math.random()*0.3+0.08)+')';ctx.fillRect(-3,-0.5,6,1);ctx.restore()}
+  }
+  if(fieldMX>0&&fieldMY>0){
+    var fa=magType==='ushape'?0:Math.atan2(fieldMY-cy,fieldMX-cx);
+    ctx.save();ctx.translate(fieldMX,fieldMY);ctx.rotate(fa);
+    ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(-9,-5);ctx.lineTo(-9,5);ctx.closePath();ctx.fillStyle='#ff4444';ctx.fill();
+    ctx.beginPath();ctx.moveTo(-14,0);ctx.lineTo(9,-5);ctx.lineTo(9,5);ctx.closePath();ctx.fillStyle='#4488ff';ctx.fill();
+    ctx.restore();
+  }
+}
+document.getElementById('cField').addEventListener('mousemove',function(e){var r=e.target.getBoundingClientRect();fieldMX=(e.clientX-r.left)*(e.target.width/r.width);fieldMY=(e.clientY-r.top)*(e.target.height/r.height)});
+document.getElementById('cField').addEventListener('mouseleave',function(){fieldMX=-1;fieldMY=-1});
+
+/* === المجال الأرضي === */
+function drawEarth(){
+  var c=document.getElementById('cEarth');if(!c||activeTab!=='earth')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2,s=120;
+  ctx.beginPath();ctx.ellipse(cx,cy,s*1.1,s,0,0,Math.PI*2);ctx.strokeStyle='rgba(30,100,180,0.4)';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='rgba(15,40,80,0.3)';ctx.fill();
+  for(var i=-2;i<=2;i++){var yy=cy+i*s*0.3;ctx.beginPath();ctx.ellipse(cx,yy,s*1.1*Math.cos(Math.asin(i*0.3)),s*0.15,0,0,Math.PI*2);ctx.strokeStyle='rgba(50,130,200,0.15)';ctx.lineWidth=1;ctx.stroke()}
+  drawArr(ctx,cx,cy-s*1.3,cx,cy+s*1.3,'rgba(200,200,200,0.5)',1);
+  ctx.beginPath();ctx.arc(cx,cy-s*1.3,8,0,Math.PI*2);ctx.fillStyle='#ff4444';ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 11px Tajawal';ctx.textAlign='center';ctx.fillText('N جغرافي',cx,cy-s*1.3-14);
+  ctx.beginPath();ctx.arc(cx,cy+s*1.3,8,0,Math.PI*2);ctx.fillStyle='#4488ff';ctx.fill();ctx.fillText('S جغرافي',cx,cy+s*1.3+18);
+  ctx.beginPath();ctx.arc(cx+20,cy-s*1.2,7,0,Math.PI*2);ctx.fillStyle='#4488ff';ctx.fill();ctx.fillStyle='#88bbff';ctx.font='10px Tajawal';ctx.fillText('S مغناطيسي',cx+20,cy-s*1.2-12);
+  ctx.beginPath();ctx.arc(cx-20,cy+s*1.2,7,0,Math.PI*2);ctx.fillStyle='#ff4444';ctx.fill();ctx.fillStyle='#ff8888';ctx.fillText('N مغناطيسي',cx-20,cy+s*1.2+16);
+  if(earthShowLines){
+    for(var i=0;i<8;i++){
+      var ang=(i/8)*Math.PI*2+earthRotY;ctx.beginPath();ctx.strokeStyle='rgba(0,229,160,0.25)';ctx.lineWidth=1.2;
+      for(var t=0;t<=1;t+=0.03){
+        var lat=Math.PI*t-Math.PI/2,r=s*1.4+s*0.5*Math.cos(lat);
+        var x3=r*Math.cos(lat)*Math.cos(ang),y3=r*Math.sin(lat),z3=r*Math.cos(lat)*Math.sin(ang);
+        var p=proj(x3,y3,z3,earthRotX,0,cx,cy,1);
+        t===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);
+      }ctx.stroke();
+    }
+  }
+  if(earthShowNeedle){
+    var nx=cx+60,ny=cy-s*1.5;ctx.save();ctx.translate(nx,ny);
+    ctx.beginPath();ctx.moveTo(0,-25);ctx.lineTo(-4,0);ctx.lineTo(4,0);ctx.closePath();ctx.fillStyle='#ff3333';ctx.fill();
+    ctx.beginPath();ctx.moveTo(0,25);ctx.lineTo(-4,0);ctx.lineTo(4,0);ctx.closePath();ctx.fillStyle='#3333ff';ctx.fill();
+    ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fillStyle='#888';ctx.fill();ctx.restore();
+    ctx.fillStyle='#aaa';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('بوصلة معلقة',nx,ny-32);
+  }
+  ctx.fillStyle='rgba(122,139,168,0.5)';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('اسحب للتدوير',cx,h-15);
+}
+var ec=document.getElementById('cEarth');
+ec.addEventListener('mousedown',function(e){earthDrag=true;earthLX=e.clientX;earthLY=e.clientY});
+ec.addEventListener('mousemove',function(e){if(earthDrag){earthRotY+=(e.clientX-earthLX)*0.01;earthRotX=Math.max(-1,Math.min(1,earthRotX+(e.clientY-earthLY)*0.01));earthLX=e.clientX;earthLY=e.clientY}});
+ec.addEventListener('mouseup',function(){earthDrag=false});ec.addEventListener('mouseleave',function(){earthDrag=false});
+
+/* === قاعدة اليد اليمنى === */
+function setQ(t){qType=t;document.getElementById('bPos').className=t===1?'btn btn-p':'btn btn-s';document.getElementById('bNeg').className=t===-1?'btn btn-p':'btn btn-s';updRHR()}
+function updRHR(){
+  var vd=document.getElementById('vS').value,bd=document.getElementById('bS').value;
+  st('vL',vd);st('bL',bd);
+  var dm={'+x':[1,0,0],'-x':[-1,0,0],'+y':[0,1,0],'-y':[0,-1,0],'+z':[0,0,1],'-z':[0,0,-1]};
+  var v=dm[vd],b=dm[bd];
+  var fx=qType*(v[1]*b[2]-v[2]*b[1]),fy=qType*(v[2]*b[0]-v[0]*b[2]),fz=qType*(v[0]*b[1]-v[1]*b[0]);
+  var s='';
+  if(fx)s+=(fx>0?'+x':'-x');if(fy)s+=(s?', ':'')+(fy>0?'+y':'-y');if(fz)s+=(s?', ':'')+(fz>0?'+z (out)':'-z (in)');
+  if(!s)s='0 (موازي)';st('fRes',s);
+}
+function drawRHR(){
+  var c=document.getElementById('cRHR');if(!c||activeTab!=='force')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2,sc=110;
+  var dm={'+x':[1,0,0],'-x':[-1,0,0],'+y':[0,1,0],'-y':[0,-1,0],'+z':[0,0,1],'-z':[0,0,-1]};
+  var vd=document.getElementById('vS').value,bd=document.getElementById('bS').value;
+  var v=dm[vd],b=dm[bd];
+  var fx=qType*(v[1]*b[2]-v[2]*b[1]),fy=qType*(v[2]*b[0]-v[0]*b[2]),fz=qType*(v[0]*b[1]-v[1]*b[0]);
+  /* محاور */
+  var axes=[[1,0,0,'#ff6666','x'],[0,-1,0,'#66ff66','y'],[0.5,0.3,1,'#6666ff','z']];
+  for(var i=0;i<axes.length;i++){
+    var ax=axes[i],p1=proj(0,0,0,0.4,0.3,cx,cy,sc),p2=proj(ax[0]*1.5,ax[1]*1.5,ax[2]*1.5,0.4,0.3,cx,cy,sc);
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.strokeStyle=ax[3]+'66';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=ax[3]+'88';ctx.font='bold 11px JetBrains Mono';ctx.textAlign='center';ctx.fillText(ax[4],p2.x+10,p2.y-5);
+  }
+  /* متجهات */
+  function dv(dx,dy,dz,col,lab){
+    var p1=proj(0,0,0,0.4,0.3,cx,cy,sc),p2=proj(dx,dy,dz,0.4,0.3,cx,cy,sc);
+    drawArr(ctx,p1.x,p1.y,p2.x,p2.y,col,3);ctx.fillStyle=col;ctx.font='bold 13px JetBrains Mono';ctx.textAlign='center';ctx.fillText(lab,p2.x+12,p2.y-8);
+  }
+  dv(v[0],-v[1],v[2],'#ff4444','v');dv(b[0],-b[1],b[2],'#4488ff','B');
+  if(fx||fy||fz)dv(fx,-fy,fz,'#00e5a0','F_B');
+  /* رموز المجال */
+  if(bd==='+z'){ctx.fillStyle='rgba(68,136,255,0.12)';for(var x=25;x<w;x+=35)for(var y=25;y<h;y+=35){if(Math.abs(x-cx)<90&&Math.abs(y-cy)<90)continue;ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill()}}
+  if(bd==='-z'){ctx.fillStyle='rgba(68,136,255,0.12)';for(var x=25;x<w;x+=35)for(var y=25;y<h;y+=35){if(Math.abs(x-cx)<90&&Math.abs(y-cy)<90)continue;ctx.fillRect(x-3,y-1,6,2);ctx.fillRect(x-1,y-3,2,6)}}
+  ctx.font='bold 12px Tajawal';ctx.textAlign='right';ctx.fillStyle='#ff4444';ctx.fillText('السرعة v',w-15,25);ctx.fillStyle='#4488ff';ctx.fillText('المجال B',w-15,43);ctx.fillStyle='#00e5a0';ctx.fillText('القوة F_B',w-15,61);
+  ctx.fillStyle=qType>0?'#ffaa00':'#ff4466';ctx.fillText('شحنة: '+(qType>0?'+q موجبة':'-q سالبة'),w-15,79);
+}
+
+/* === حركة الجسيم === */
+function updMotion(){
+  var m=gv('mS'),v=gv('vS2'),q=gv('qS'),b=gv('bS2');
+  st('mVL',m);st('vVL',v);st('qVL',q);st('bVL',b);
+  var r=m*1e-27*v*1e6/(q*1e-19*b),f=q*1e-19*v*1e6*b;
+  st('rRes',r.toFixed(4)+' m');st('fMRes',f.toExponential(2)+' N');
+}
+function drawMotion(){
+  var c=document.getElementById('cMotion');if(!c||activeTab!=='motion')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2;
+  var m=gv('mS'),v=gv('vS2'),q=gv('qS'),b=gv('bS2');
+  var rReal=m*1e-27*v*1e6/(q*1e-19*b);
+  var r=Math.min(Math.max(rReal/0.104*120,40),180);
+  ctx.strokeStyle='rgba(30,48,80,0.3)';ctx.lineWidth=0.5;
+  for(var x=0;x<w;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
+  for(var y=0;y<h;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+  ctx.fillStyle='rgba(0,200,255,0.15)';for(var x=20;x<w;x+=35)for(var y=20;y<h;y+=35){ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill()}
+  ctx.fillStyle='rgba(0,200,255,0.4)';ctx.font='10px JetBrains Mono';ctx.textAlign='left';ctx.fillText('B (داخل الشاشة)',10,20);
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='rgba(0,229,160,0.3)';ctx.lineWidth=1.5;ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);
+  if(!motionPause)motionAngle+=0.025;
+  if(motionAngle>Math.PI*2)motionAngle-=Math.PI*2;
+  var px=cx+Math.cos(motionAngle)*r,py=cy+Math.sin(motionAngle)*r;
+  ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+motionAngle);ctx.strokeStyle='rgba(0,229,160,0.5)';ctx.lineWidth=3;ctx.stroke();
+  ctx.beginPath();ctx.arc(px,py,8,0,Math.PI*2);ctx.fillStyle='#ff4444';ctx.fill();
+  ctx.beginPath();ctx.arc(px,py,12,0,Math.PI*2);ctx.strokeStyle='rgba(255,68,68,0.3)';ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font='bold 10px JetBrains Mono';ctx.textAlign='center';ctx.fillText('+q',px,py-16);
+  var vx=-Math.sin(motionAngle),vy=Math.cos(motionAngle);
+  drawArr(ctx,px,py,px+vx*50,py+vy*50,'#ff8844',2.5);ctx.fillStyle='#ff8844';ctx.font='bold 11px JetBrains Mono';ctx.fillText('v',px+vx*55,py+vy*55);
+  var fxcx=cx-px,fycy=cy-py,fd=Math.sqrt(fxcx*fxcx+fycy*fycy)||1;
+  drawArr(ctx,px,py,px+fxcx/fd*40,py+fycy/fd*40,'#00e5a0',2.5);ctx.fillStyle='#00e5a0';ctx.fillText('F_B',px+fxcx/fd*48,py+fycy/fd*48);
+  ctx.beginPath();ctx.setLineDash([3,3]);ctx.moveTo(cx,cy);ctx.lineTo(px,py);ctx.strokeStyle='rgba(255,167,38,0.5)';ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#ffa726';ctx.font='11px JetBrains Mono';ctx.fillText('r = '+rReal.toFixed(4)+' m',(cx+px)/2+15,(cy+py)/2);
+  ctx.beginPath();ctx.arc(cx,cy,3,0,Math.PI*2);ctx.fillStyle='#ffa726';ctx.fill();
+}
+
+/* === المختبر 1 === */
+function drawLab1(){
+  var c=document.getElementById('cLab1');if(!c||activeTab!=='lab1')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2;
+  ctx.fillStyle='#1a2a40';ctx.strokeStyle='#334466';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(cx-180,cy-50,360,100,15);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#334455';ctx.fillRect(cx-170,cy-30,40,60);ctx.fillStyle='#88aacc';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('مصعد',cx-150,cy+45);
+  ctx.fillStyle='#1a3020';ctx.fillRect(cx+140,cy-40,20,80);
+  if(lab1Pow){
+    var def=lab1Near?(lab1Flip?35:-35):0;
+    ctx.beginPath();ctx.moveTo(cx-130,cy);
+    if(def!==0)ctx.bezierCurveTo(cx-50,cy,cx+50,cy+def*0.5,cx+140,cy+def);else ctx.lineTo(cx+140,cy);
+    ctx.strokeStyle='#00ff88';ctx.lineWidth=3;ctx.shadowColor='#00ff88';ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(cx+150,cy+def,6,0,Math.PI*2);ctx.fillStyle='#00ff88';ctx.shadowColor='#00ff88';ctx.shadowBlur=20;ctx.fill();ctx.shadowBlur=0;
+    var obs=document.getElementById('lab1Obs');
+    obs.innerHTML='<p class="text-[--accent]">● الأشعة المهبطية: خط أخضر مستقيم (إلكترونات)</p>';
+    if(lab1Step>=2)obs.innerHTML+='<p class="text-[--warm]">● تقريب المغناطيس: انحراف '+(lab1Flip?'للأسفل':'للأعلى')+'</p>';
+    if(lab1Step>=3){obs.innerHTML+='<p class="text-[--danger]">● عكس الأقطاب = عكس الانحراف!</p>';document.getElementById('lab1Conc').style.display='block'}
+  }else{document.getElementById('lab1Obs').innerHTML='<p class="text-[--muted]">شغّل المصدر...</p>';document.getElementById('lab1Conc').style.display='none'}
+  if(lab1Near){
+    var mx=cx+20,my=cy-80;
+    ctx.fillStyle=lab1Flip?'#2222cc':'#cc2222';ctx.fillRect(mx-40,my,40,25);
+    ctx.fillStyle=lab1Flip?'#cc2222':'#2222cc';ctx.fillRect(mx,my,40,25);
+    ctx.fillStyle='#fff';ctx.font='bold 12px Tajawal';ctx.textAlign='center';
+    ctx.fillText(lab1Flip?'S':'N',mx-20,my+16);ctx.fillText(lab1Flip?'N':'S',mx+20,my+16);
+    ctx.strokeStyle='rgba(0,229,160,0.3)';ctx.lineWidth=1;for(var i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(mx-40,my+25+i*5);ctx.lineTo(mx+40,my+25+i*5);ctx.stroke()}
+    ctx.fillStyle='#aaa';ctx.font='10px Tajawal';ctx.fillText('مغناطيس',mx,my-8);
+  }
+  ctx.fillStyle='#7a8ba8';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('أنبوب أشعة مهبطية',cx,cy+70);
+  if(!lab1Pow){ctx.fillStyle='#555';ctx.font='14px Tajawal';ctx.fillText('اضغط "تشغيل"',cx,cy)}
+}
+
+/* === مطياف الكتلة === */
+function drawSpec(){
+  var c=document.getElementById('cSpec');if(!c||activeTab!=='spectro')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cy=h/2;
+  ctx.fillStyle='#1a2a3a';ctx.fillRect(40,cy-60,100,120);ctx.strokeRect(40,cy-60,100,120);
+  ctx.fillStyle='#7a8ba8';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('تسريع',90,cy+80);
+  ctx.fillStyle='#0a1520';ctx.fillRect(140,cy-5,10,10);
+  ctx.fillStyle='#0d1a2a';ctx.fillRect(150,cy-120,300,240);ctx.strokeRect(150,cy-120,300,240);
+  ctx.fillStyle='rgba(0,200,255,0.1)';for(var x=160;x<440;x+=25)for(var y=cy-110;y<cy+110;y+=25){ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill()}
+  ctx.fillStyle='#7a8ba8';ctx.fillText('B ⊗',300,cy+135);
+  ctx.fillStyle='#2a3a2a';ctx.fillRect(455,cy-120,20,240);ctx.strokeRect(455,cy-120,20,240);ctx.fillText('كاشف',465,cy+135);
+  if(specRun){specT+=0.008;
+    var ions=[{r:60,col:'#ff4444',lab:'U-238'},{r:40,col:'#44ff44',lab:'U-235'}];
+    for(var idx=0;idx<ions.length;idx++){
+      var ion=ions[idx],spd=0.6+idx*0.15,t=Math.min(specT*spd,1);
+      if(t<0.3){var tt=t/0.3;ctx.beginPath();ctx.arc(90+tt*60,cy,4,0,Math.PI*2);ctx.fillStyle=ion.col;ctx.fill()}
+      else{var ang=(t-0.3)/0.7*Math.PI*0.8,r=ion.r,cxC=150,cyC=cy+r;
+        var ppx=cxC-r*Math.sin(ang),ppy=cyC-r*Math.cos(ang);
+        ctx.beginPath();ctx.arc(cxC,cyC,r,-Math.PI/2,-Math.PI/2+ang);ctx.strokeStyle=ion.col+'66';ctx.lineWidth=2;ctx.stroke();
+        ctx.beginPath();ctx.arc(ppx,ppy,4,0,Math.PI*2);ctx.fillStyle=ion.col;ctx.shadowColor=ion.col;ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
+        if(t>0.95){ctx.fillStyle=ion.col;ctx.font='9px Tajawal';ctx.textAlign='left';ctx.fillText(ion.lab,ppx+8,ppy)}
+      }
+    }
+  }
+  drawArr(ctx,130,cy,148,cy,'#ffa726',2);ctx.fillStyle='#ffa726';ctx.font='9px JetBrains Mono';ctx.fillText('v →',105,cy-10);
+}
+
+/* === السينكروترون === */
+function drawSync(){
+  var c=document.getElementById('cSync');if(!c||activeTab!=='spectro')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2,r=120;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle='#2c3e50';ctx.lineWidth=30;ctx.stroke();
+  for(var i=0;i<12;i++){var a=(i/12)*Math.PI*2,px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r;ctx.save();ctx.translate(px,py);ctx.rotate(a);ctx.fillStyle=i%2===0?'#993333':'#333399';ctx.fillRect(-12,-8,24,16);ctx.restore()}
+  var t=Date.now()*0.002;
+  for(var i=0;i<6;i++){var a=t+i*(Math.PI*2/6),px=cx+Math.cos(a)*r,py=cy+Math.sin(a)*r;
+    ctx.beginPath();ctx.arc(px,py,4,0,Math.PI*2);ctx.fillStyle='#00ffcc';ctx.shadowColor='#00ffcc';ctx.shadowBlur=12;ctx.fill();ctx.shadowBlur=0;
+    var ra=a+Math.PI;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px+Math.cos(ra)*30,py+Math.sin(ra)*30);ctx.strokeStyle='rgba(255,200,50,0.3)';ctx.lineWidth=2;ctx.stroke()}
+  ctx.fillStyle='#7a8ba8';ctx.font='11px Tajawal';ctx.textAlign='center';ctx.fillText('مسار حلقي - جسيمات مسرعة',cx,cy);
+  ctx.fillStyle='rgba(255,200,50,0.6)';ctx.font='10px Tajawal';ctx.fillText('أشعة كهرمغناطيسية منبعثة',cx,cy+r+30);
+}
+
+/* === القوة في موصل === */
+function drawCond(){
+  var c=document.getElementById('cCond');if(!c||activeTab!=='conductor')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2;
+  ctx.fillStyle='#cc2222';ctx.fillRect(cx-180,cy-80,40,160);ctx.fillStyle='#fff';ctx.font='bold 18px Tajawal';ctx.textAlign='center';ctx.fillText('N',cx-160,cy);
+  ctx.fillStyle='#2222cc';ctx.fillRect(cx+140,cy-80,40,160);ctx.fillText('S',cx+160,cy);
+  for(var i=-4;i<=4;i++){var y=cy+i*18;ctx.beginPath();ctx.moveTo(cx-138,y);ctx.lineTo(cx+138,y);ctx.strokeStyle='rgba(0,229,160,0.2)';ctx.lineWidth=1;ctx.stroke();drawArr(ctx,cx,y,cx+8,y,'rgba(0,229,160,0.4)',1.5)}
+  var def=condOn?(condRev?-50:50):0;
+  ctx.beginPath();ctx.moveTo(cx,cy-100);
+  if(def!==0){ctx.bezierCurveTo(cx,cy-50,cx+def*0.5,cy,cx+def,cy);ctx.bezierCurveTo(cx+def*0.5,cy,cx,cy+50,cx,cy+100)}else ctx.lineTo(cx,cy+100);
+  ctx.strokeStyle='#ffa726';ctx.lineWidth=4;ctx.stroke();
+  if(condOn){
+    var dir=condRev?-1:1;
+    for(var j=0;j<5;j++){var tt=(Date.now()*0.003+j*0.2)%1,ty=cy-100+200*tt,tx=cx+def*Math.sin(tt*Math.PI)*0.5;
+      ctx.beginPath();ctx.moveTo(tx,ty+dir*8);ctx.lineTo(tx,ty-dir*8);ctx.strokeStyle='#ffdd00';ctx.lineWidth=2;ctx.stroke();
+      ctx.beginPath();ctx.moveTo(tx,ty-dir*8);ctx.lineTo(tx-3,ty-dir*2);ctx.lineTo(tx+3,ty-dir*2);ctx.closePath();ctx.fillStyle='#ffdd00';ctx.fill()}
+    ctx.fillStyle='#ffdd00';ctx.font='bold 12px JetBrains Mono';ctx.textAlign='left';ctx.fillText('I '+(condRev?'↓':'↑'),cx+15,cy-80);
+    var fDir=condRev?-1:1;drawArr(ctx,cx+def*0.5,cy,cx+def*0.5+fDir*40,cy,'#00e5a0',3);
+    ctx.fillStyle='#00e5a0';ctx.font='bold 12px JetBrains Mono';ctx.fillText('F_B',cx+def*0.5+fDir*45,cy-5);
+  }else{ctx.fillStyle='#555';ctx.font='12px Tajawal';ctx.textAlign='center';ctx.fillText('I = 0',cx+20,cy)}
+  ctx.fillStyle='#555';ctx.fillRect(cx-3,cy-110,6,10);ctx.fillRect(cx-3,cy+100,6,10);
+}
+
+/* === المختبر 2 === */
+function updLab2(){var i=gv('l2IS'),b=gv('l2BS'),l=gv('l2LS'),f=i*b*l;st('l2I',i);st('l2B',b);st('l2L',l);st('l2F',f.toFixed(4)+' N');st('l2Sc',f.toFixed(4)+' N')}
+function lab2Rec(){
+  var i=gv('l2IS'),b=gv('l2BS'),l=gv('l2LS'),f=i*b*l;lab2Data.push({i:i,b:b,l:l,f:f});
+  var tb=document.getElementById('l2TB'),tr=document.createElement('tr');
+  tr.innerHTML='<td>'+lab2Data.length+'</td><td class="mono">'+i+'</td><td class="mono">'+b+'</td><td class="mono">'+l+'</td><td class="mono">'+f.toFixed(4)+'</td><td><button class="btn btn-s" style="padding:2px 8px;font-size:10px" onclick="this.closest(\'tr\').remove()"><i class="fas fa-times"></i></button></td>';
+  tb.appendChild(tr);toast('تسجيل القراءة '+lab2Data.length);
+}
+function lab2Plot(){
+  if(lab2Data.length<2){toast('سجّل قراءتين على الأقل');return}
+  document.getElementById('l2GrA').style.display='block';
+  var c=document.getElementById('cLab2G'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var pad={t:30,r:30,b:50,l:60},gw=w-pad.l-pad.r,gh=h-pad.t-pad.b;
+  ctx.strokeStyle='#334';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,h-pad.b);ctx.lineTo(w-pad.r,h-pad.b);ctx.stroke();
+  var maxI=Math.max.apply(null,lab2Data.map(function(d){return d.i}))*1.1;
+  var maxF=Math.max.apply(null,lab2Data.map(function(d){return d.f}))*1.1;
+  ctx.fillStyle='#7a8ba8';ctx.font='10px JetBrains Mono';ctx.textAlign='center';
+  for(var i=0;i<=5;i++){var x=pad.l+gw*i/5;ctx.fillText((maxI*i/5).toFixed(1),x,h-pad.b+18);ctx.beginPath();ctx.moveTo(x,h-pad.b);ctx.lineTo(x,h-pad.b+5);ctx.stroke()}
+  ctx.textAlign='right';for(var i=0;i<=5;i++){var y=h-pad.b-gh*i/5;ctx.fillText((maxF*i/5).toFixed(3),pad.l-8,y+4);ctx.beginPath();ctx.moveTo(pad.l-5,y);ctx.lineTo(pad.l,y);ctx.stroke()}
+  ctx.fillStyle='#aaa';ctx.font='11px Tajawal';ctx.textAlign='center';ctx.fillText('I (A)',w/2,h-8);ctx.save();ctx.translate(15,h/2);ctx.rotate(-Math.PI/2);ctx.fillText('F_B (N)',0,0);ctx.restore();
+  for(var j=0;j<lab2Data.length;j++){var d=lab2Data[j],x=pad.l+gw*d.i/maxI,y=h-pad.b-gh*d.f/maxF;
+    ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle='#00e5a0';ctx.fill();ctx.beginPath();ctx.arc(x,y,8,0,Math.PI*2);ctx.strokeStyle='rgba(0,229,160,0.3)';ctx.lineWidth=2;ctx.fill()}
+  var n=lab2Data.length,sx=0,sy=0,sxy=0,sx2=0;
+  for(var j=0;j<n;j++){sx+=lab2Data[j].i;sy+=lab2Data[j].f;sxy+=lab2Data[j].i*lab2Data[j].f;sx2+=lab2Data[j].i*lab2Data[j].i}
+  var slope=(n*sxy-sx*sy)/(n*sx2-sx*sx)||0,intercept=(sy-slope*sx)/n;
+  var x1=0,y1=intercept,x2=maxI,y2=slope*maxI+intercept;
+  ctx.beginPath();ctx.moveTo(pad.l+gw*x1/maxI,h-pad.b-gh*y1/maxF);ctx.lineTo(pad.l+gw*x2/maxI,h-pad.b-gh*y2/maxF);ctx.strokeStyle='#ffa726';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#ffa726';ctx.font='10px JetBrains Mono';ctx.textAlign='left';ctx.fillText('الميل = '+slope.toFixed(4)+' (≈ B×L)',pad.l+10,pad.t+15);
+  document.getElementById('l2Conc').style.display='block';
+}
+function drawLab2(){
+  var c=document.getElementById('cLab2');if(!c||activeTab!=='lab2')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2;
+  ctx.fillStyle='#cc2222';ctx.fillRect(cx-120,cy-60,35,120);ctx.fillStyle='#2222cc';ctx.fillRect(cx+85,cy-60,35,120);
+  ctx.fillStyle='#fff';ctx.font='bold 14px Tajawal';ctx.textAlign='center';ctx.fillText('N',cx-102,cy);ctx.fillText('S',cx+102,cy);
+  for(var i=-3;i<=3;i++){var y=cy+i*15;ctx.beginPath();ctx.moveTo(cx-83,y);ctx.lineTo(cx+83,y);ctx.strokeStyle='rgba(0,229,160,0.2)';ctx.lineWidth=1;ctx.stroke()}
+  ctx.strokeStyle='#ffa726';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(cx,cy-80);ctx.lineTo(cx,cy+80);ctx.stroke();
+  var cur=gv('l2IS');if(cur>0){for(var j=0;j<3;j++){var tt=(Date.now()*0.003+j*0.33)%1,ty=cy-80+160*tt;ctx.beginPath();ctx.moveTo(cx-5,ty);ctx.lineTo(cx+5,ty);ctx.strokeStyle='#ffdd00';ctx.lineWidth=2;ctx.stroke()}}
+  ctx.fillStyle='#1a2530';ctx.fillRect(cx-80,cy+100,160,30);ctx.strokeStyle='#334';ctx.lineWidth=1;ctx.strokeRect(cx-80,cy+100,160,30);
+  var f=cur*gv('l2BS')*gv('l2LS');ctx.fillStyle='#00e5a0';ctx.font='bold 14px JetBrains Mono';ctx.textAlign='center';ctx.fillText(f.toFixed(4)+' N',cx,cy+120);
+  ctx.fillStyle='#7a8ba8';ctx.font='10px Tajawal';ctx.fillText('ميزان رقمي',cx,cy+145);ctx.fillText('سلك نحاسي',cx+20,cy-85);
+}
+
+/* === العزم === */
+function drawTorque(){
+  var c=document.getElementById('cTorque');if(!c||activeTab!=='torque')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2;
+  if(torqRun)torqAngle+=0.02;if(torqAngle>Math.PI*2)torqAngle-=Math.PI*2;
+  st('torqL','θ = '+(torqAngle*180/Math.PI%360).toFixed(0)+'°');
+  ctx.fillStyle='rgba(0,200,255,0.08)';for(var x=40;x<w-40;x+=30)for(var y=40;y<h-40;y+=30){ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill()}
+  ctx.fillStyle='rgba(0,200,255,0.4)';ctx.font='10px JetBrains Mono';ctx.textAlign='left';ctx.fillText('B ⊗',10,20);
+  var a=80,b=50,cosA=Math.cos(torqAngle),sinA=Math.sin(torqAngle);
+  var c3=[[-a/2,0,-b/2],[a/2,0,-b/2],[a/2,0,b/2],[-a/2,0,b/2]];
+  var pts=[];for(var i=0;i<4;i++){var x=c3[i][0],y=c3[i][1]*cosA-c3[i][2]*sinA,z=c3[i][1]*sinA+c3[i][2]*cosA;pts.push(proj(x,y,z,0.3,0,cx,cy,1))}
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(var i=1;i<4;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.strokeStyle='#ffa726';ctx.lineWidth=3;ctx.stroke();
+  var m12={x:(pts[1].x+pts[2].x)/2,y:(pts[1].y+pts[2].y)/2},m30={x:(pts[3].x+pts[0].x)/2,y:(pts[3].y+pts[0].y)/2};
+  drawArr(ctx,m12.x,m12.y,m12.x,m12.y-40,'#00e5a0',2.5);ctx.fillStyle='#00e5a0';ctx.font='bold 11px JetBrains Mono';ctx.fillText('F',m12.x+8,m12.y-40);
+  drawArr(ctx,m30.x,m30.y,m30.x,m30.y+40,'#00e5a0',2.5);ctx.fillText('F',m30.x+8,m30.y+45);
+  drawArr(ctx,cx,cy+80,cx,cy-80,'rgba(200,200,200,0.3)',1);
+  ctx.fillStyle='rgba(200,200,200,0.4)';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('محور الدوران',cx,cy-88);
+}
+
+/* === المحرك === */
+function drawMotor(){
+  var c=document.getElementById('cMotor');if(!c||activeTab!=='torque')return;
+  var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
+  var cx=w/2,cy=h/2;
+  if(motorRun){motorAngle+=0.03*motorSpd;if(motorAngle>Math.PI*2)motorAngle-=Math.PI*2}
+  ctx.fillStyle='#aa2222';ctx.fillRect(cx-160,cy-70,35,140);ctx.fillStyle='#fff';ctx.font='bold 16px Tajawal';ctx.textAlign='center';ctx.fillText('N',cx-142,cy+5);
+  ctx.fillStyle='#2222aa';ctx.fillRect(cx+125,cy-70,35,140);ctx.fillText('S',cx+142,cy+5);
+  for(var i=-3;i<=3;i++){var y=cy+i*18;ctx.beginPath();ctx.moveTo(cx-123,y);ctx.lineTo(cx+123,y);ctx.strokeStyle='rgba(0,229,160,0.2)';ctx.lineWidth=1;ctx.stroke();drawArr(ctx,cx,y,cx+8,y,'rgba(0,229,160,0.4)',1.5)}
+  /* ملف مستطيل يدور */
+  var cosA=Math.cos(motorAngle),sinA=Math.sin(motorAngle);
+  var hw=50,hh=70;
+  var corners=[[-hw,0,-hh],[hw,0,-hh],[hw,0,hh],[-hw,0,hh]];
+  var pts=[];for(var i=0;i<4;i++){var x=corners[i][0],y=corners[i][1]*cosA-corners[i][2]*sinA,z=corners[i][1]*sinA+corners[i][2]*cosA;pts.push(proj(x,y,z,0.25,0,cx,cy,1))}
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(var i=1;i<4;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.strokeStyle='#ffa726';ctx.lineWidth=3;ctx.stroke();
+  /* تيار في الملف */
+  ctx.fillStyle='#ffdd00';ctx.font='bold 10px JetBrains Mono';ctx.textAlign='center';
+  var mid01={x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2};
+  var mid23={x:(pts[2].x+pts[3].x)/2,y:(pts[2].y+pts[3].y)/2};
+  ctx.fillText('I',mid01.x+15,mid01.y);ctx.fillText('I',mid23.x-15,mid23.y);
+  /* قوى على الضلعين العموديين */
+  var m12={x:(pts[1].x+pts[2].x)/2,y:(pts[1].y+pts[2].y)/2};
+  var m30={x:(pts[3].x+pts[0].x)/2,y:(pts[3].y+pts[0].y)/2};
+  drawArr(ctx,m12.x,m12.y,m12.x,m12.y-35,'#00e5a0',2);ctx.fillText('F',m12.x+10,m12.y-35);
+  drawArr(ctx,m30.x,m30.y,m30.x,m30.y+35,'#00e5a0',2);ctx.fillText('F',m30.x+10,m30.y+40);
+  /* محور */
+  drawArr(ctx,cx,cy+90,cx,cy-90,'rgba(200,200,200,0.3)',1);
+  /* فرشات */
+  ctx.fillStyle='#333';ctx.fillRect(cx-8,cy+75,16,8);ctx.fillRect(cx-8,cy-83,16,8);
+  ctx.fillStyle='#7a8ba8';ctx.font='9px Tajawal';ctx.fillText('فرشة',cx+18,cy+80);ctx.fillText('فرشة',cx+18,cy-80);
+  /* عاكس */
+  ctx.beginPath();ctx.arc(cx,cy,8,0,Math.PI*2);ctx.strokeStyle='#cc8800';ctx.lineWidth=3;ctx.stroke();
+  ctx.fillStyle='#7a8ba8';ctx.font='9px Tajawal';ctx.fillText('عاكس',cx+15,cy+5);
+  /* سهم دوران */
+  if(motorRun){ctx.beginPath();ctx.arc(cx,cy,100,-0.5,Math.PI*1.2);ctx.strokeStyle='rgba(0,229,160,0.3)';ctx.lineWidth=1.5;ctx.stroke()}
+}
+
+/* === حل الأمثلة === */
+function solve1(){
+  var v=gv('e1vS'),b=gv('e1bS');st('e1v',v);st('e1b',b);
+  var fb=1.6e-19*v*1e6*b*1e-4;
+  document.getElementById('e1Sol').innerHTML='<p class="text-[--muted] mb-1"><b>المعطيات:</b></p>'+
+    '<p class="mono">v = '+v+'×10⁶ m/s, B = '+b+'×10⁻⁴ T</p>'+
+    '<p class="mono">e = 1.6×10⁻¹⁹ C, θ = 90°</p>'+
+    '<p class="text-[--accent] mt-2 font-bold">الحل:</p>'+
+    '<p class="mono">F<sub>B</sub> = evB sin 90°</p>'+
+    '<p class="mono">F<sub>B</sub> = 1.6×10⁻¹⁹ × '+v+'×10⁶ × '+b+'×10⁻⁴ × 1</p>'+
+    '<p class="mono text-[--warm] font-bold">F<sub>B</sub> = '+fb.toExponential(2)+' N</p>'+
+    '<p class="mt-1">بتطبيق قاعدة اليد اليمنى (شحنة سالبة): الاتجاه <span class="text-[--danger] font-bold">داخل الشاشة (-z)</span></p>';
+}
+function solve2(){
+  var q=gv('e2qS'),v=gv('e2vS'),b=gv('e2bS'),th=gv('e2tS');st('e2q',q);st('e2v',v);st('e2b',b);st('e2t',th);
+  var sinT=Math.sin(th*Math.PI/180),fb=q*1e-6*v*1e5*b*1e-4*sinT;
+  document.getElementById('e2Sol').innerHTML='<p class="mono">q = '+q+'×10⁻⁶ C, v = '+v+'×10⁵ m/s</p>'+
+    '<p class="mono">B = '+b+'×10⁻⁴ T, θ = '+th+'°</p>'+
+    '<p class="text-[--accent] mt-2 font-bold">الحل:</p>'+
+    '<p class="mono">F<sub>B</sub> = qvB sin θ</p>'+
+    '<p class="mono">F<sub>B</sub> = '+q+'×10⁻⁶ × '+v+'×10⁵ × '+b+'×10⁻⁴ × sin '+th+'°</p>'+
+    '<p class="mono">F<sub>B</sub> = '+q+'×10⁻⁶ × '+v+'×10⁵ × '+b+'×10⁻⁴ × '+sinT.toFixed(3)+'</p>'+
+    '<p class="mono text-[--warm] font-bold">F<sub>B</sub> = '+fb.toExponential(2)+' N</p>'+
+    '<p class="mt-1">الاتجاه: <span class="text-[--danger] font-bold">داخل الشاشة (-z)</span></p>';
+}
+function solve3(){
+  var v=gv('e3vS'),b=gv('e3bS'),r1=gv('e3r1S'),r2=gv('e3r2S');st('e3v',v);st('e3b',b);st('e3r1',r1);st('e3r2',r2);
+  var q=1.602e-19,m1=r1*1e-2*q*b/v/100,m2=r2*1e-2*q*b/v/100;
+  document.getElementById('e3Sol').innerHTML='<p class="mono">v = '+v+'×10² m/s, B = '+b+' T</p>'+
+    '<p class="mono">r₁ = '+r1+' cm, r₂ = '+r2+' cm, q = 1.602×10⁻¹⁹ C</p>'+
+    '<p class="text-[--accent] mt-2 font-bold">الحل: m = rqB/v</p>'+
+    '<p class="mono">m₁ = '+r1+'×10⁻² × 1.602×10⁻¹⁹ × '+b+' / ('+v+'×10²)</p>'+
+    '<p class="mono text-[--warm]">m₁ = '+m1.toExponential(3)+' kg → <b>U-235</b></p>'+
+    '<p class="mono mt-1">m₂ = '+r2+'×10⁻² × 1.602×10⁻¹⁹ × '+b+' / ('+v+'×10²)</p>'+
+    '<p class="mono text-[--warm]">m₂ = '+m2.toExponential(3)+' kg → <b>U-238</b></p>'+
+    '<p class="mt-1 text-[--accent]">المسار الأكبر = الكتلة الأكبر = U-238</p>';
+}
+function solve4(){
+  var i=gv('e4iS'),b=gv('e4bS'),l=gv('e4lS');st('e4i',i);st('e4b',b);st('e4l',l);
+  var fb=i*b*l*1e-2;
+  document.getElementById('e4Sol').innerHTML='<p class="mono">I = '+i+' A, B = '+b+' T, L = '+l+' cm = '+l*0.01+' m</p>'+
+    '<p class="text-[--accent] mt-2 font-bold">الحل:</p>'+
+    '<p class="mono">F<sub>B</sub> = IBL sin 90°</p>'+
+    '<p class="mono">F<sub>B</sub> = '+i+' × '+b+' × '+l*0.01+'</p>'+
+    '<p class="mono text-[--warm] font-bold">F<sub>B</sub> = '+fb.toFixed(4)+' N</p>'+
+    '<p class="mt-1">بتطبيق قاعدة اليد اليمنى: الاتجاه <span class="text-[--accent] font-bold">خارج الشاشة (+z)</span></p>';
+}
+
+/* === حلقة الرسم الرئيسية === */
+function mainLoop(){
+  drawField();
+  drawEarth();
+  drawRHR();
+  drawMotion();
+  drawLab1();
+  drawSpec();
+  drawSync();
+  drawCond();
+  drawLab2();
+  drawTorque();
+  drawMotor();
+  requestAnimationFrame(mainLoop);
+}
+
+/* === تهيئة أولية === */
+updRHR();
+updMotion();
+updLab2();
+mainLoop();
+</script>
+</body>
+</html>
