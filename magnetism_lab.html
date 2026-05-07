@@ -209,7 +209,10 @@ select{width:100%;background:var(--bg);border:1px solid var(--border);border-rad
 <!-- المختبر 1 -->
 <div class="section" id="sec-lab1">
 <div class="max-w-5xl mx-auto">
-<h2 class="text-xl font-black mb-1">المختبر الافتراضي 1: الأشعة المهبطية</h2>
+<div class="flex items-center justify-between mb-1">
+<h2 class="text-xl font-black">المختبر الافتراضي 1: الأشعة المهبطية</h2>
+<p class="text-sm font-bold" style="color:var(--warm)">إعداد: Israa Youssuf Samara</p>
+</div>
 <p class="text-xs text-[--muted] mb-4">استقصاء تأثير المجال المغناطيسي في شحنة متحركة</p>
 <div class="grid grid-cols-2 gap-4">
 <div class="card"><canvas id="cLab1" width="600" height="420"></canvas>
@@ -609,32 +612,137 @@ function drawMotion(){
 function drawLab1(){
   var c=document.getElementById('cLab1');if(!c||activeTab!=='lab1')return;
   var ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);
-  var cx=w/2,cy=h/2;
-  ctx.fillStyle='#1a2a40';ctx.strokeStyle='#334466';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(cx-180,cy-50,360,100,15);ctx.fill();ctx.stroke();
-  ctx.fillStyle='#334455';ctx.fillRect(cx-170,cy-30,40,60);ctx.fillStyle='#88aacc';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('مصعد',cx-150,cy+45);
-  ctx.fillStyle='#1a3020';ctx.fillRect(cx+140,cy-40,20,80);
+  var cx=w/2,cy=h/2-20;
+  var tubeL=cx-190,tubeR=cx+190,tubeT=cy-45,tubeB=cy+45;
+
+  /* أنبوب الأشعة المهبطية */
+  ctx.beginPath();
+  ctx.moveTo(tubeL,tubeT+15);ctx.lineTo(tubeR-30,tubeT);
+  ctx.quadraticCurveTo(tubeR+10,tubeT,tubeR+10,cy);
+  ctx.quadraticCurveTo(tubeR+10,tubeB,tubeR-30,tubeB);
+  ctx.lineTo(tubeL,tubeB-15);ctx.closePath();
+  ctx.fillStyle='rgba(10,25,50,0.6)';ctx.fill();
+  ctx.strokeStyle='rgba(100,160,220,0.5)';ctx.lineWidth=2.5;ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(tubeL+5,tubeT+20);ctx.lineTo(tubeR-35,tubeT+5);
+  ctx.quadraticCurveTo(tubeR+5,tubeT+5,tubeR+5,cy-5);
+  ctx.strokeStyle='rgba(150,200,255,0.15)';ctx.lineWidth=4;ctx.stroke();
+
+  /* شاشة الفلورسنت */
+  ctx.beginPath();
+  ctx.moveTo(tubeR-30,tubeT+5);
+  ctx.quadraticCurveTo(tubeR+8,tubeT+5,tubeR+8,cy);
+  ctx.quadraticCurveTo(tubeR+8,tubeB-5,tubeR-30,tubeB-5);
+  ctx.closePath();ctx.fillStyle='rgba(20,60,30,0.7)';ctx.fill();
+  ctx.strokeStyle='rgba(0,255,100,0.3)';ctx.lineWidth=1;ctx.stroke();
+  ctx.fillStyle='rgba(0,255,100,0.4)';ctx.font='9px Tajawal';ctx.textAlign='center';
+  ctx.fillText('شاشة فلورسنت',tubeR-10,tubeB+15);
+
+  /* المهبط (كاثود -) */
+  ctx.fillStyle='#556677';ctx.fillRect(tubeL+10,cy-20,18,40);
+  ctx.strokeStyle='#8899aa';ctx.lineWidth=1.5;ctx.strokeRect(tubeL+10,cy-20,18,40);
+  ctx.beginPath();ctx.arc(tubeL+19,cy,12,0,Math.PI*2);
+  var glow=lab1Pow?0.6+Math.sin(Date.now()*0.005)*0.2:0.1;
+  ctx.fillStyle='rgba(255,100,50,'+glow+')';ctx.fill();
+  if(lab1Pow){ctx.shadowColor='#ff6633';ctx.shadowBlur=15;ctx.fill();ctx.shadowBlur=0}
+  ctx.fillStyle='#ccc';ctx.font='bold 16px Tajawal';ctx.textAlign='center';
+  ctx.fillText('\u2212',tubeL+19,cy+38);
+  ctx.fillStyle='#7a8ba8';ctx.font='10px Tajawal';ctx.fillText('مهبط',tubeL+19,cy+55);
+  ctx.fillStyle='#7a8ba8';ctx.font='9px JetBrains Mono';ctx.fillText('cathode',tubeL+19,cy+67);
+
+  /* المصعد (أنود +) */
+  ctx.fillStyle='#556677';ctx.fillRect(tubeR-65,cy-22,8,44);
+  ctx.fillStyle='#ccc';ctx.font='bold 16px Tajawal';ctx.fillText('+',tubeR-61,cy+38);
+  ctx.fillStyle='#7a8ba8';ctx.font='10px Tajawal';ctx.fillText('مصعد',tubeR-61,cy+55);
+  ctx.fillStyle='#7a8ba8';ctx.font='9px JetBrains Mono';ctx.fillText('anode',tubeR-61,cy+67);
+
+  /* مصدر DC */
+  var psx=cx-40,psy=cy+120,psw=80,psh=40;
+  ctx.fillStyle='#1a2535';ctx.strokeStyle='#334466';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.roundRect(psx,psy,psw,psh,6);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#ccc';ctx.font='bold 12px Tajawal';ctx.textAlign='center';
+  ctx.fillText('DC',psx+psw/2,psy+16);
+  ctx.fillStyle='#ff4444';ctx.font='bold 14px Tajawal';ctx.fillText('+',psx+psw-12,psy+34);
+  ctx.fillStyle='#4488ff';ctx.fillText('\u2212',psx+12,psy+34);
+  ctx.beginPath();ctx.moveTo(psx+12,psy);ctx.lineTo(psx+12,psy-15);
+  ctx.lineTo(tubeL+19,psy-15);ctx.lineTo(tubeL+19,tubeB+2);
+  ctx.strokeStyle='#4488ff';ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(psx+psw-12,psy);ctx.lineTo(psx+psw-12,psy-15);
+  ctx.lineTo(tubeR-61,psy-15);ctx.lineTo(tubeR-61,tubeB+2);
+  ctx.strokeStyle='#ff4444';ctx.lineWidth=2;ctx.stroke();
+
+  /* حزمة الإلكترونات */
   if(lab1Pow){
-    var def=lab1Near?(lab1Flip?35:-35):0;
-    ctx.beginPath();ctx.moveTo(cx-130,cy);
-    if(def!==0)ctx.bezierCurveTo(cx-50,cy,cx+50,cy+def*0.5,cx+140,cy+def);else ctx.lineTo(cx+140,cy);
-    ctx.strokeStyle='#00ff88';ctx.lineWidth=3;ctx.shadowColor='#00ff88';ctx.shadowBlur=10;ctx.stroke();ctx.shadowBlur=0;
-    ctx.beginPath();ctx.arc(cx+150,cy+def,6,0,Math.PI*2);ctx.fillStyle='#00ff88';ctx.shadowColor='#00ff88';ctx.shadowBlur=20;ctx.fill();ctx.shadowBlur=0;
+    var deflection=lab1Near?(lab1Flip?-55:55):0;
+    var startX=tubeL+28,endX=tubeR-62;
+    ctx.beginPath();ctx.moveTo(startX,cy);
+    if(deflection!==0){
+      ctx.bezierCurveTo(startX+(endX-startX)*0.3,cy,startX+(endX-startX)*0.7,cy+deflection*0.7,endX,cy+deflection);
+    }else{
+      ctx.lineTo(endX,cy);
+    }
+    ctx.strokeStyle='#00ff88';ctx.lineWidth=3;
+    ctx.shadowColor='#00ff88';ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(tubeR-5,cy+deflection,8,0,Math.PI*2);
+    ctx.fillStyle='#00ff88';ctx.shadowColor='#00ff88';ctx.shadowBlur=25;ctx.fill();ctx.shadowBlur=0;
+    for(var j=0;j<4;j++){
+      var tt=((Date.now()*0.004+j*0.25)%1),t1=tt;
+      var ex,ey;
+      if(deflection!==0){
+        ex=(1-t1)*(1-t1)*(1-t1)*startX+3*(1-t1)*(1-t1)*t1*(startX+(endX-startX)*0.3)+3*(1-t1)*t1*t1*(startX+(endX-startX)*0.7)+t1*t1*t1*endX;
+        ey=(1-t1)*(1-t1)*(1-t1)*cy+3*(1-t1)*(1-t1)*t1*cy+3*(1-t1)*t1*t1*(cy+deflection*0.7)+t1*t1*t1*(cy+deflection);
+      }else{
+        ex=startX+(endX-startX)*tt;ey=cy;
+      }
+      ctx.beginPath();ctx.arc(ex,ey,3,0,Math.PI*2);ctx.fillStyle='#66ffaa';ctx.shadowColor='#00ff88';ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;
+    }
+    ctx.fillStyle='#00ff88';ctx.font='bold 12px JetBrains Mono';ctx.textAlign='center';
+    ctx.fillText('e\u207B \u2192',deflection!==0?cx-20:cx,deflection!==0?cy+deflection*0.3-12:cy-12);
     var obs=document.getElementById('lab1Obs');
-    obs.innerHTML='<p class="text-[--accent]">● الأشعة المهبطية: خط أخضر مستقيم (إلكترونات)</p>';
-    if(lab1Step>=2)obs.innerHTML+='<p class="text-[--warm]">● تقريب المغناطيس: انحراف '+(lab1Flip?'للأسفل':'للأعلى')+'</p>';
-    if(lab1Step>=3){obs.innerHTML+='<p class="text-[--danger]">● عكس الأقطاب = عكس الانحراف!</p>';document.getElementById('lab1Conc').style.display='block'}
-  }else{document.getElementById('lab1Obs').innerHTML='<p class="text-[--muted]">شغّل المصدر...</p>';document.getElementById('lab1Conc').style.display='none'}
-  if(lab1Near){
-    var mx=cx+20,my=cy-80;
-    ctx.fillStyle=lab1Flip?'#2222cc':'#cc2222';ctx.fillRect(mx-40,my,40,25);
-    ctx.fillStyle=lab1Flip?'#cc2222':'#2222cc';ctx.fillRect(mx,my,40,25);
-    ctx.fillStyle='#fff';ctx.font='bold 12px Tajawal';ctx.textAlign='center';
-    ctx.fillText(lab1Flip?'S':'N',mx-20,my+16);ctx.fillText(lab1Flip?'N':'S',mx+20,my+16);
-    ctx.strokeStyle='rgba(0,229,160,0.3)';ctx.lineWidth=1;for(var i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(mx-40,my+25+i*5);ctx.lineTo(mx+40,my+25+i*5);ctx.stroke()}
-    ctx.fillStyle='#aaa';ctx.font='10px Tajawal';ctx.fillText('مغناطيس',mx,my-8);
+    if(lab1Step>=1)obs.innerHTML='<p class="text-[--accent]">\u25CF ظهرت حزمة خضراء (إلكترونات) تسير في خط مستقيم من المهبط إلى المصعد</p>';
+    if(lab1Step>=2)obs.innerHTML+='<p class="text-[--warm]">\u25CF عند تقريب المغناطيس: انحراف الحزمة '+(lab1Flip?'للأسفل':'للأعلى')+' \u2014 المجال المغناطيسي يؤثر في الشحنات المتحركة بقوة!</p>';
+    if(lab1Step>=3){obs.innerHTML+='<p class="text-[--danger]">\u25CF عند عكس الأقطاب: انحراف عكسي! اتجاه القوة يعتمد على اتجاه المجال.</p>';document.getElementById('lab1Conc').style.display='block'}
+  }else{
+    document.getElementById('lab1Obs').innerHTML='<p class="text-[--muted]">شغّل المصدر لبدء التجربة...</p>';
+    document.getElementById('lab1Conc').style.display='none';
+    ctx.fillStyle='rgba(80,100,130,0.15)';ctx.font='13px Tajawal';ctx.textAlign='center';
+    ctx.fillText('اضغط "تشغيل المصدر"',cx,cy-5);
+    ctx.fillStyle='rgba(80,100,130,0.1)';ctx.font='10px Tajawal';
+    ctx.fillText('ضغط هواء منخفض',cx,cy+15);
   }
-  ctx.fillStyle='#7a8ba8';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('أنبوب أشعة مهبطية',cx,cy+70);
-  if(!lab1Pow){ctx.fillStyle='#555';ctx.font='14px Tajawal';ctx.fillText('اضغط "تشغيل"',cx,cy)}
+
+  /* المغناطيس */
+  if(lab1Near){
+    var magX=cx-40,magY=cy-80;
+    ctx.beginPath();ctx.strokeStyle='#667788';ctx.lineWidth=8;ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.moveTo(magX-55,magY+35);ctx.lineTo(magX-55,magY);
+    ctx.lineTo(magX+55,magY);ctx.lineTo(magX+55,magY+35);ctx.stroke();
+    ctx.fillStyle=lab1Flip?'#2255aa':'#cc2222';
+    ctx.fillRect(magX-70,magY-25,30,30);
+    ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.strokeRect(magX-70,magY-25,30,30);
+    ctx.fillStyle='#fff';ctx.font='bold 14px Tajawal';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(lab1Flip?'S':'N',magX-55,magY-10);
+    ctx.fillStyle=lab1Flip?'#cc2222':'#2255aa';
+    ctx.fillRect(magX+40,magY-25,30,30);
+    ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.strokeRect(magX+40,magY-25,30,30);
+    ctx.fillStyle='#fff';ctx.fillText(lab1Flip?'N':'S',magX+55,magY-10);
+    ctx.textBaseline='alphabetic';
+    ctx.strokeStyle='rgba(0,229,160,0.25)';ctx.lineWidth=1;
+    for(var i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(magX-40,magY+5+i*6);ctx.lineTo(magX+40,magY+5+i*6);ctx.stroke()}
+    drawArr(ctx,magX,magY+5,magX+12,magY+5,'rgba(0,229,160,0.5)',1.5);
+    ctx.fillStyle='#aaa';ctx.font='10px Tajawal';ctx.textAlign='center';ctx.fillText('مغناطيس',magX,magY-32);
+    ctx.beginPath();ctx.moveTo(magX,magY+38);ctx.lineTo(magX,tubeT-5);
+    ctx.strokeStyle='rgba(255,167,38,0.4)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+    drawArr(ctx,magX,tubeT-5,magX,tubeT+5,'rgba(255,167,38,0.5)',1.5);
+    ctx.fillStyle='rgba(255,167,38,0.5)';ctx.font='9px Tajawal';ctx.fillText('مجال B',magX+25,magY+20);
+  }
+
+  ctx.fillStyle='#7a8ba8';ctx.font='10px Tajawal';ctx.textAlign='center';
+  ctx.fillText('أنبوب أشعة مهبطية',cx,tubeB+30);
+  ctx.fillStyle='#556677';ctx.font='9px Tajawal';ctx.fillText('(ضغط هواء منخفض)',cx,tubeB+43);
+  ctx.fillStyle='rgba(122,139,168,0.4)';ctx.font='10px Tajawal';ctx.textAlign='left';
+  var st2=lab1Pow?(lab1Near?(lab1Flip?'المغناطيس قريب (أقطاب معكوسة)':'المغناطيس قريب'):'المصدر يعمل - لا مغناطيس'):'المصدر مطفأ';
+  ctx.fillText('الحالة: '+st2,15,h-10);
 }
 
 /* === مطياف الكتلة === */
