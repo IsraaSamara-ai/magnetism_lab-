@@ -180,29 +180,53 @@ select{width:100%;background:var(--bg);border:1px solid var(--border);border-rad
 <!-- حركة الجسيم المشحون -->
 <div class="section" id="sec-motion">
 <div class="max-w-5xl mx-auto">
-<h2 class="text-xl font-black mb-1">حركة جسيم مشحون في مجال منتظم</h2>
-<p class="text-xs text-[--muted] mb-4">لماذا مسار دائري؟</p>
-<div class="life"><div class="flex items-start gap-2"><i class="fas fa-hurricane text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك اليومية</p><p class="text-[11px] text-[--muted]">تخيّل تدور المقود بثبات - السيارة تسلك مساراً دائرياً! القوة المغناطيسية تغيّر اتجاه السرعة دون مقدارها.</p></div></div></div>
+<div class="flex items-center justify-between mb-1">
+<h2 class="text-xl font-black">حركة جسيم مشحون في مجال منتظم <span class="mono text-xs text-[--muted]">Charged Particle Motion</span></h2>
+<p class="text-sm font-bold" style="color:var(--warm)">Teacher: Israa Youssuf Samara</p>
+</div>
+<p class="text-xs text-[--muted] mb-4">لماذا يسلك الجسيم المشحون مساراً دائرياً عندما يدخل عمودياً على مجال مغناطيسي منتظم؟</p>
+<div class="life"><div class="flex items-start gap-2"><i class="fas fa-hurricane text-[--warm] mt-1"></i><div><p class="text-xs font-bold text-[--warm] mb-1">من حياتك اليومية</p><p class="text-[11px] text-[--muted]">تخيّل سيارة تدور المقود بزاوية ثابتة — تسلك مساراً دائرياً! كذلك الجسيم المشحون: القوة المغناطيسية دائماً عمودية على سرعته فتغير اتجاهها فقط دون مقدارها.</p></div></div></div>
 <div class="grid grid-cols-2 gap-4">
-<div class="card"><canvas id="cMotion" width="600" height="440"></canvas>
+<div class="card"><canvas id="cMotion" width="600" height="460"></canvas>
 <div class="flex gap-2 mt-2"><button class="btn btn-p" onclick="motionPause=!motionPause"><i class="fas fa-pause"></i>إيقاف/استئناف</button><button class="btn btn-s" onclick="motionAngle=0;motionPause=false"><i class="fas fa-redo"></i>إعادة</button></div></div>
 <div>
-<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-cog text-[--accent] ml-1"></i>تحكّم بالمعاملات</h3>
-<div class="slider-group"><label><span>m (×10⁻²⁷ kg)</span><span class="mono text-[10px]" id="mVL">1.67</span></label><input type="range" id="mS" min="0.5" max="10" step="0.5" value="1.67" oninput="updMotion()"></div>
-<div class="slider-group"><label><span>v (×10⁶ m/s)</span><span class="mono text-[10px]" id="vVL">5.0</span></label><input type="range" id="vS2" min="1" max="10" step="0.5" value="5" oninput="updMotion()"></div>
-<div class="slider-group"><label><span>q (×10⁻¹⁹ C)</span><span class="mono text-[10px]" id="qVL">1.6</span></label><input type="range" id="qS" min="0.5" max="5" step="0.5" value="1.6" oninput="updMotion()"></div>
-<div class="slider-group"><label><span>B (T)</span><span class="mono text-[10px]" id="bVL">0.5</span></label><input type="range" id="bS2" min="0.1" max="2" step="0.1" value="0.5" oninput="updMotion()"></div></div>
-<div class="card mt-3"><div class="eq-box text-sm">r = mv/qB = <span id="rRes" class="text-[--accent] font-bold">0.104 m</span></div>
-<div class="eq-box text-sm mt-1">F<sub>B</sub> = qvB = <span id="fMRes" class="text-[--warm] font-bold">4.0×10⁻¹³ N</span></div></div>
+<div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-info-circle text-[--accent] ml-1"></i>لماذا مسار دائري؟</h3><div class="space-y-2 text-xs">
+<div class="flex gap-2 items-start"><div class="sn">1</div><p>الجسيم يدخل <span class="text-[--accent] font-bold">عمودياً</span> على المجال (θ = 90°)</p></div>
+<div class="flex gap-2 items-start"><div class="sn">2</div><p>القوة F<sub>B</sub> دائماً <span class="text-[--warm] font-bold">عمودية</span> على السرعة والمجال معاً</p></div>
+<div class="flex gap-2 items-start"><div class="sn">3</div><p>عمودية القوة على السرعة ← تغيّر <span class="text-red-400 font-bold">الاتجاه</span> فقط دون <span class="text-blue-400 font-bold">المقدار</span></p></div>
+<div class="flex gap-2 items-start"><div class="sn">4</div><p>بقاء مقدار السرعة ثابتاً ← القوة ثابتة ← <span class="text-[--accent] font-bold">تسارع مركزي ثابت</span></p></div>
+<div class="flex gap-2 items-start"><div class="sn">5</div><p>تسارع مركزي ثابت = مسار <span class="text-[--accent] font-bold">دائري منتظم</span></p></div>
 </div></div>
-<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-pen-fancy text-[--accent2] ml-1"></i>الاشتقاق الرياضي</h3>
-<div class="grid grid-cols-4 gap-2 text-center">
-<div class="p-2 rounded bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted]">مركزية</p><div class="eq-box text-xs">F = mv²/r</div></div>
-<div class="p-2 rounded bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted]">مغناطيسية</p><div class="eq-box text-xs">F<sub>B</sub> = qvB</div></div>
-<div class="p-2 rounded bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted]">مساواة</p><div class="eq-box text-xs">qvB = mv²/r</div></div>
-<div class="p-2 rounded bg-[--bg] border border-[--accent]"><p class="text-[10px] text-[--accent] font-bold">نتيجة</p><div class="eq-box text-xs text-[--accent]">r = mv/qB</div></div>
-</div>
-<div class="conc mt-2"><h4><i class="fas fa-eye ml-1"></i>ملاحظة</h4><p class="text-xs text-[--muted]">القوة <span class="text-[--accent] font-bold">لا تبذل شغلاً</span> لأنها عمودية على الحركة.</p></div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-flask text-[--accent2] ml-1"></i>مثال: بروتون في مجال منتظم</h3>
+<div class="space-y-1 text-xs">
+<div class="p-2 rounded bg-[--bg] border border-[--border]"><span class="text-[--muted]">الجسيم:</span> <span class="mono text-[--fg]">بروتون</span> (شحنة موجبة)</div>
+<div class="grid grid-cols-2 gap-2"><div class="p-2 rounded bg-[--bg] border border-[--border]"><span class="text-[--muted]">m =</span> <span class="mono text-[--warm]">1.67×10⁻²⁷ kg</span></div><div class="p-2 rounded bg-[--bg] border border-[--border]"><span class="text-[--muted]">v =</span> <span class="mono text-[--warm]">5.0×10⁶ m/s</span></div><div class="p-2 rounded bg-[--bg] border border-[--border]"><span class="text-[--muted]">q =</span> <span class="mono text-[--warm]">1.6×10⁻¹⁹ C</span></div><div class="p-2 rounded bg-[--bg] border border-[--border]"><span class="text-[--muted]">B =</span> <span class="mono text-[--warm]">0.5 T</span></div></div>
+<div class="eq-box text-sm mt-2">r = mv/qB = <span class="text-[--accent] font-bold">0.1044 m</span></div>
+<div class="eq-box text-sm mt-1">F<sub>B</sub> = qvB = <span class="text-[--warm] font-bold">4.0×10⁻¹³ N</span></div>
+</div></div>
+<div class="conc mt-3"><h4><i class="fas fa-eye ml-1"></i>ملاحظات من الرسم المتحرك</h4>
+<div class="text-xs space-y-1 text-[--muted] mt-1">
+<p>● سهم <span class="text-[--warm] font-bold">v (برتقالي)</span> دائماً ظل للمسار — مقداره ثابت</p>
+<p>● سهم <span class="text-[--accent] font-bold">F_B (أخضر)</span> دائماً نحو المركز — القوة المركزية</p>
+<p>● v و F_B دائماً <span class="font-bold">عموديان</span> — لا شغل ← الطاقة الحركية ثابتة</p>
+<p>● ω = qB/m لا تعتمد على v — كل الجسيمات بنفس q و m لها نفس ω</p>
+</div></div>
+</div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-pen-fancy text-[--accent2] ml-1"></i>التوصل رياضياً إلى نصف قطر المسار</h3>
+<div class="grid grid-cols-4 gap-3 text-center">
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted] mb-1">الخطوة 1</p><div class="eq-box text-xs">F = mv²/r</div></div>
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted] mb-1">الخطوة 2</p><div class="eq-box text-xs">F<sub>B</sub> = qvB</div></div>
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="text-[10px] text-[--muted] mb-1">المساواة</p><div class="eq-box text-xs">qvB = mv²/r</div></div>
+<div class="p-3 rounded-lg bg-[--bg] border border-[--accent]"><p class="text-[10px] text-[--accent] font-bold mb-1">النتيجة</p><div class="eq-box text-xs text-[--accent]">r = mv/qB</div></div>
+</div></div>
+<div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-search text-[--warm] ml-1"></i>كيف يؤثر كل عامل في r = mv/qB ؟</h3>
+<div class="grid grid-cols-2 gap-3 text-xs">
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="font-bold text-red-400 mb-1">زيادة الكتلة m</p><p class="text-[--muted]">r يزداد طردياً — الأثقل أصعب انحرافاً ← مسار أكبر.</p></div>
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="font-bold text-[--warm] mb-1">زيادة السرعة v</p><p class="text-[--muted]">r يزداد طردياً — لكن ω لا تتغير!</p></div>
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="font-bold text-[--accent] mb-1">زيادة الشحنة q</p><p class="text-[--muted]">r يقل عكسياً — شحنة أكبر ← انحراف أقوى ← مسار أصغر.</p></div>
+<div class="p-3 rounded-lg bg-[--bg] border border-[--border]"><p class="font-bold text-blue-400 mb-1">زيادة المجال B</p><p class="text-[--muted]">r يقل عكسياً — مجال أقوى ← انحراف أقوى ← مسار أصغر.</p></div>
+</div></div>
+<div class="conc mt-3"><h4><i class="fas fa-lightbulb ml-1"></i>خلاصة</h4><p class="text-xs text-[--muted]">القوة المغناطيسية <span class="text-[--accent] font-bold">لا تبذل شغلاً</span> لأنها عمودية على الحركة. <span class="text-[--warm] font-bold">الطاقة الحركية ثابتة</span> ومقدار السرعة لا يتغير — فقط الاتجاه يتغير ← مسار دائري.</p></div>
 </div>
 </div>
 
@@ -211,27 +235,27 @@ select{width:100%;background:var(--bg);border:1px solid var(--border);border-rad
 <div class="max-w-5xl mx-auto">
 <div class="flex items-center justify-between mb-1">
 <h2 class="text-xl font-black">المختبر الافتراضي 1: الأشعة المهبطية</h2>
-<p class="text-sm font-bold" style="color:var(--warm)">إعداد: Israa Youssuf Samara</p>
+<p class="text-sm font-bold" style="color:var(--warm)">Teacher: Israa Youssuf Samara</p>
 </div>
 <p class="text-xs text-[--muted] mb-4">استقصاء تأثير المجال المغناطيسي في شحنة متحركة</p>
 <div class="grid grid-cols-2 gap-4">
 <div class="card"><canvas id="cLab1" width="600" height="420"></canvas>
 <div class="flex gap-2 mt-2 flex-wrap">
-<button class="btn btn-p" onclick="lab1Pow=!lab1Pow;if(lab1Pow)lab1Step=1;else{lab1Step=0;lab1Near=false;lab1Flip=false}toast(lab1Pow?'تشغيل المصدر':'إطفاء')"><i class="fas fa-power-off"></i>تشغيل</button>
-<button class="btn btn-s" onclick="if(lab1Pow){lab1Near=true;lab1Step=2;toast('تقريب المغناطيس')}"><i class="fas fa-magnet"></i>تقريب المغناطيس</button>
-<button class="btn btn-s" onclick="if(lab1Near){lab1Flip=!lab1Flip;lab1Step=3;toast('عكس الأقطاب')}"><i class="fas fa-exchange-alt"></i>عكس الأقطاب</button>
+<button class="btn btn-p" onclick="lab1Pow=!lab1Pow;if(lab1Pow){lab1Step=1;lab1Near=false;lab1Flip=false}else{lab1Step=0;lab1Near=false;lab1Flip=false}toast(lab1Pow?'تم تشغيل المصدر':'تم إطفاء المصدر')"><i class="fas fa-power-off"></i>تشغيل المصدر</button>
+<button class="btn btn-s" onclick="if(!lab1Pow){toast('شغّل المصدر أولاً');return}lab1Near=true;lab1Flip=false;lab1Step=2;toast('تم تقريب المغناطيس')"><i class="fas fa-magnet"></i>تقريب المغناطيس</button>
+<button class="btn btn-s" onclick="if(!lab1Near){toast('قربّ المغناطيس أولاً');return}lab1Flip=!lab1Flip;lab1Step=3;toast('تم عكس الأقطاب')"><i class="fas fa-exchange-alt"></i>عكس الأقطاب</button>
+<button class="btn btn-s" onclick="lab1Pow=false;lab1Near=false;lab1Flip=false;lab1Step=0;document.getElementById('lab1Obs').innerHTML='<p style=&quot;color:#7a8ba8&quot;>شغّل المصدر لبدء التجربة...</p>';document.getElementById('lab1Conc').style.display='none';toast('إعادة تعيين')"><i class="fas fa-redo"></i>إعادة تعيين</button>
 </div></div>
 <div>
 <div class="card"><h3 class="text-sm font-bold mb-2"><i class="fas fa-clipboard-list text-[--accent] ml-1"></i>خطوات</h3><div class="space-y-1 text-xs">
 <div class="flex gap-2"><div class="sn">1</div><p>شغّل المصدر وارفع الجهد</p></div>
-<div class="flex gap-2"><div class="sn">2</div><p>لاحظ مسار الأشعة المستقيم</p></div>
+<div class="flex gap-2"><div class="sn">2</div><p>لاحظ الحزمة المستقيمة</p></div>
 <div class="flex gap-2"><div class="sn">3</div><p>قرّب المغناطيس ولاحظ الانحراف</p></div>
 <div class="flex gap-2"><div class="sn">4</div><p>اعكس الأقطاب</p></div>
 </div></div>
 <div class="card mt-3"><h3 class="text-sm font-bold mb-2"><i class="fas fa-eye text-[--warm] ml-1"></i>الملاحظات</h3><div class="text-xs space-y-1" id="lab1Obs"><p class="text-[--muted]">شغّل المصدر لبدء التجربة...</p></div></div>
-<div class="conc mt-3" id="lab1Conc" style="display:none"><h4><i class="fas fa-check-double ml-1"></i>الاستنتاج</h4><p class="text-xs text-[--muted]">المجال المغناطيسي يؤثر في الإلكترونات بقوة تنحرفها. عكس الأقطاب يعكس الاتجاه.</p></div>
+<div class="conc mt-3" id="lab1Conc" style="display:none"><h4><i class="fas fa-check-double ml-1"></i>الاستنتاج</h4><p class="text-xs text-[--muted]">المجال المغناطيسي يؤثر في الإلكترونات بقوة تنحرفها. عكس الأقطاب يعكس الاتجاه. ضغط الهواء المنخفض ضروري لمنع التصادم.</p></div>
 </div></div>
-</div>
 </div>
 
 <!-- مطياف الكتلة والسينكروترون -->
